@@ -287,6 +287,8 @@ export class App{
 
         const upperLeft = this.nodeDatabase.getNode(-1);
 		const lowerRight = this.nodeDatabase.getNode(-2);
+        console.log(upperLeft);
+        console.log(lowerRight);
 
         let startId;
         let endId;
@@ -295,9 +297,13 @@ export class App{
 		this.end.addOptions(this.getNodeDB().getAllNames());
 
         if(params.startMode === QrCodeParams.ID_MODE){
-            let names = this.nodeDatabase.getNode(params.start).getLabels();
-            if(names.length > 0){
-                this.start.setInput(names[0]);
+            try {
+                let names = this.nodeDatabase.getNode(params.start).getLabels();
+                if(names.length > 0){
+                    this.start.setInput(names[0]);
+                }
+            } catch(e){
+                console.error(e);
             }
             startId = params.start;
 
@@ -307,9 +313,13 @@ export class App{
         }
 
         if(params.endMode === QrCodeParams.ID_MODE){
-            let names = this.nodeDatabase.getNode(params.end).getLabels();
-            if(names.length > 0){
-                this.end.setInput(names[0]);
+            try {
+                let names = this.nodeDatabase.getNode(params.end).getLabels();
+                if(names.length > 0){
+                    this.end.setInput(names[0]);
+                }
+            } catch(e){
+                console.error(e);
             }
             endId = params.end;
         } else {
@@ -319,6 +329,8 @@ export class App{
 
         //params.displayData();
 
+        console.log(upperLeft);
+        console.log(lowerRight);
 		this.canvas.setCorners(
 			upperLeft.x,
 			upperLeft.y,
@@ -336,6 +348,8 @@ export class App{
 			this.addDevTools();
 			console.log("adding dev");
 		}
+
+        this.nodeDatabase.drawAll(this.canvas);
     }
 
     addDevTools(){

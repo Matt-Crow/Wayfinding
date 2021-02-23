@@ -9,7 +9,6 @@ the HTML file.
 */
 export class NodeDB{
 	constructor(){
-		this.nodes = new Map();
 		/*
 		Keys are integers, the node's ID, values are Node objects.
 		Note that while we could store them as an array,
@@ -19,8 +18,15 @@ export class NodeDB{
 		but shifting nodes -1 and -2 could be a problem,
 		as those specific IDs denote map corners.
 		*/
+		this.idToNode = new Map();
 
-		this.stuffToNodeId = new Map();
+		/*
+		Store these in the nodeDB instead of in the node itself.
+		This prevents issues when connections are imported before coordinates
+		number => number[]
+		*/
+		this.idToAdjId = new Map();
+
 		/*
 		keys are a string, the name of the point (building/room/class name).
 		value is associated node ID.
@@ -28,12 +34,8 @@ export class NodeDB{
 		Since we go by the pattern of "something" has a node ID associated with it,
 		and we don't need to differentiate between rooms/buildings/etc,
 		I can store them all in one place.
-
-		Not sure which is most efficient:
-		-Map
-		-Object
-		-Array
 		*/
+		this.stuffToNodeId = new Map();
 
        this.allLabels = []; //need this for closest match
     }
@@ -69,7 +71,7 @@ export class NodeDB{
 					x,
 					y
 				);
-				this.nodes.set(id, newNode);
+				this.idToNode.set(id, newNode);
 				// add cached labels to that node
 				for(let pair of this.stuffToNodeId.entries()){
 					if(pair[1] == id){
@@ -111,9 +113,11 @@ export class NodeDB{
     			if(isNaN(id)){
     				throw new Error(`Oops! Node ID of "${row[1]}": ID must be a number`);
     			} else {
-        			db.stuffToNodeId.set(name, id);
+        			db.stuffToNodeId.set(name, id); // move to using just this
 					try {
-                    	this.getNode(id).addLabel(name);
+						if(this.idToNode.get(id) != undefined){
+                    		this.getNode(id).addLabel(name);
+						} // suppress warning for now.
 					} catch(e){
 						// node with id not set yet.
 					}
@@ -133,18 +137,18 @@ export class NodeDB{
 		*/
 		let data = formatResponse(responseText);
 
+		let from;
+		let to;
 		let row;
 		for(let i = 1; i < data.length; i++){
 			row = data[i];
-			try {
-				this.getNode(parseInt(row[0])).addAdjId(parseInt(row[1]));
-			} catch(e){
-				console.log("Node not found: " + parseInt(row[1]));
-				console.log(e.stack);
+			from = parseInt(row[0]);
+			to = parseInt(row[1]);
+			if(!this.idToAdjId.has(from)){
+				this.idToAdjId.set(from, []);
 			}
+			this.idToAdjId.get(from).push(to);
 		}
-		let db = this;
-		this.getAll().forEach(node => node.loadAdj(db));
 	}
 
 	parseImageResponse(csvFile){
@@ -220,14 +224,18 @@ export class NodeDB{
 		*/
 		let ret = null;
 		try{
-			ret = this.nodes.get(parseInt(id));
-			if(!(ret instanceof Node)){
+			ret = this.idToNode.get(parseInt(id));
+			if(ret == undefined){
 				throw Error("Node with id of " + id + " does not exist");
 			}
 		} catch(e){
-			console.log(e.stack);
+			console.error(e);
 		}
 		return ret;
+	}
+
+	getIdsAdjTo(id){
+		return (this.idToAdjId.has(id)) ? this.idToAdjId.get(id) : [];
 	}
 
 	getIdByString(string){
@@ -281,7 +289,7 @@ export class NodeDB{
 		/*
 		Gets all the nodes stored here
 		*/
-		return Array.from(this.nodes.values());
+		return Array.from(this.idToNode.values());
 	}
 
 	prettyPrintStuffToId(){
@@ -308,12 +316,22 @@ export class NodeDB{
 		//used to detect connection errors
 		this.getAll().forEach(node => node.generateDiv(main));
 	}
-
+	drawLinks(node, canvas){
+		let toNode;
+		// draws lines connecting this node to its adjacent nodes
+		canvas.setColor("red");
+		node.drawId(canvas);
+		this.getIdsAdjTo(node.id).forEach((to)=>{
+			toNode = this.getNode(to);
+			toNode.draw(canvas);
+			canvas.line(node.x, node.y, toNode.x, toNode.y);
+		});
+	}
 	drawAll(canvas){
 		//canvas is an instance of the program's Canvas object, not HTML canvas
 		this.getAll().forEach(node => {
 			node.draw(canvas);
-			node.drawLinks(canvas);
+			this.drawLinks(node, canvas);
 		});
 	}
 };

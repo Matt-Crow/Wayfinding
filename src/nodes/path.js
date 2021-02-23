@@ -1,6 +1,6 @@
 /*
 Path is used to store a collection of Nodes that connect together
-to form a path between two Nodes. 
+to form a path between two Nodes.
 
 HOW A PATH IS FOUND:
 1. Every Node has a list of Nodes that connect to it, called adjacent nodes.
@@ -16,16 +16,16 @@ class Path{
         /*
         start and endId are node IDs
         dataSource is an App object
-        
+
         nodePath is an array of nodes which serve as the vertexis of this path.
         pathLength is the total length of the distance between all the nodes used in the path
             it doesn't matter what scale it's in, as it is just used to compare in bestPath
         images is an array of strings, the URLs of the path's images
         imageInd is the index of the image currently displayed in main (in development)
         */
-		
+
 		this.mode = dataSource.mode;
-		
+
         this.startId = parseInt(startId);
         this.endId = parseInt(endId);
         this.dataSource = dataSource;
@@ -48,7 +48,7 @@ class Path{
 		sets this.pathPath to shortest path when complete
 		*/
         let debug = false;
-        
+
         if((this.startId < 0) || (this.endId < 0)){
 			this.invalidate();
 		}
@@ -57,7 +57,7 @@ class Path{
 			this.pathLength = 0;
 			return;
         }
-		
+
         // start by setting everything up
 		let nodeDB = this.dataSource.getNodeDB();
         //from and to are nodes
@@ -82,20 +82,20 @@ class Path{
         visited.set(this.startId, true);
         while(curr.id !== this.endId){
             //get everything adjacent to curr
-            curr.adj.forEach((node)=>{
-                if(!visited.has(node.id)){
-                    t = travelInfo(curr, node);
+            nodeDB.getIdsAdjTo(curr.id).forEach((nodeId)=>{
+                if(!visited.has(nodeId)){
+                    t = travelInfo(curr, nodeDB.getNode(nodeId));
                     t.dist += travelLog.top.value.dist; //this is accumulated distance
                     travelHeap.siftUp(t);
                 }
             });
-            
+
             if(debug){
                 console.log("After sifting up nodes adjacent to");
                 console.log(curr);
                 travelHeap.print();
             }
-            
+
             do {
                 t = travelHeap.siftDown();
                 if(debug){
@@ -113,10 +113,10 @@ class Path{
                 console.log(visited);
             }
         }
-        
+
         //backtrack to construct the path
         this.pathLength = travelLog.top.value.dist;
-        
+
         //  accumulated distance
         let accumDist = this.pathLength;
         let reversed = new Stack();
@@ -133,7 +133,7 @@ class Path{
         while(!reversed.isEmpty()){
             this.nodePath.push(reversed.pop().to);
         }
-        
+
         if(this.startId !== this.nodePath[0].id || this.endId !== this.nodePath[this.nodePath.length - 1].id){
 			this.invalidate();
 		}
@@ -155,7 +155,7 @@ class Path{
      * Used to find the smallest and largest
      * X and Y coordinates of any node in this path,
      * effectively creating a rectangle around the path.
-     * 
+     *
      * returns an object with the following properties:
      * -minX: the leftmost x coordinate of the rectangle
      * -maxX: the rightmost x coordinate of the rectangle
@@ -197,7 +197,7 @@ class Path{
 	draw(canvas) {
 		canvas.clear();
 		canvas.setColor("red");
-		
+
 		let p = this.nodePath;
 		p[0].draw(canvas);
 
@@ -292,7 +292,7 @@ class MinHeap{
         this.values = [];
         this.comparator = comparisonFunction;
     }
-    
+
     siftUp(value){
         if(this.firstEmptyIdx === this.values.length){
             //need to make room for the new value
@@ -300,7 +300,7 @@ class MinHeap{
         }
         this.values[this.firstEmptyIdx] = value;
         this.firstEmptyIdx++;
-        
+
         //swap until the value is in its proper place
         let idx = this.firstEmptyIdx - 1;
         let parentIdx = Math.floor((idx - 1) / 2); //a heap is technically a binary tree.
@@ -314,7 +314,7 @@ class MinHeap{
             parentIdx = Math.floor((idx - 1) / 2);
         }
     }
-    
+
     siftDown(){
         if(this.isEmpty()){
             throw new Error("Nothing to sift down");
@@ -324,7 +324,7 @@ class MinHeap{
         //last becomes first
         this.values[0] = this.values[this.firstEmptyIdx - 1];
         this.firstEmptyIdx--;
-        
+
         let idx = 0;
         let left = 1;
         let right = 2;
@@ -349,7 +349,7 @@ class MinHeap{
         }
         return ret;
     }
-    
+
     isEmpty(){
         return this.firstEmptyIdx === 0;
     }
