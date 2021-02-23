@@ -7,7 +7,7 @@ import {
 
 export function init(){
 	console.time("Time to load (wayfinding)");
-	
+
 	let master = new App();
     master.createCanvas("wrapper");
 	master.createStartInputBox("start box", "start hint");
@@ -17,7 +17,8 @@ export function init(){
     master.setUrlDisplay("currUrl");
     master.setUrlCopyButton("copyUrl");
     master.setDownloadButton("downloadSvg");
-	
+	master.addImportButton("dataSetUpload");
+
 	importDataInto(master).then((responses)=>{
 		console.timeEnd("Time to load (wayfinding)");
 	});

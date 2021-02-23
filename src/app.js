@@ -7,7 +7,7 @@ It also takes a lot of code out of the main HTML file.
 import { Path, testStack, testMinHeap } from         "./nodes/path.js";
 import { QrCodeParams } from "./htmlInterface/qrCodes.js";
 import { NodeDB } from       "./dataFormatting/nodeDB.js";
-import { 
+import {
     Canvas,
     TextBox,
     UrlList,
@@ -23,17 +23,17 @@ export class App{
         this.pathButton = null;
 		this.urlList = null;
         this.pathUrlElementId = null;
-		
+
         this.currentPath = null;
         this.nodeDatabase = new NodeDB();
-		
+
 		this.mode = "WAYFINDING";
     }
-    
+
     /*
      * HTML element methods
      */
-    
+
     /*
      * Adds an SVG element to the
      * element with the given id,
@@ -47,27 +47,27 @@ export class App{
 	getCanvas(){
 		return this.canvas;
 	}
-	
-    
+
+
     /*
      * Creates a TextBox from the given elements.
-     * The app uses these elements to read and display input. 
+     * The app uses these elements to read and display input.
      * Populates said TextBoxes with the contents of this' fake database when notifyImportDone is called.
      */
 	createStartInputBox(inputBoxId, resultDisplayId){
 		this.start = new TextBox(inputBoxId, resultDisplayId);
 	}
-    
+
     /*
      * Creates a TextBox from the given elements.
-     * The app uses these elements to read and display input. 
+     * The app uses these elements to read and display input.
      * Populates said TextBoxes with the contents of this' fake database when notifyImportDone is called.
      */
 	createEndInputBox(inputBoxId, resultDisplayId){
 		this.end = new TextBox(inputBoxId, resultDisplayId);
 	}
-    
-    
+
+
 	/*
     Id is the id of any HTML element.
     When the given element is clicked,
@@ -78,13 +78,13 @@ export class App{
 		if(this.pathButton === null){
 			throw new Error(`No element with an ID of ${id} exists.`);
 		}
-		
+
 		this.pathButton.onclick = ()=>{
 			this.updatePath();
 		};
 	}
-    
-    
+
+
 	/*
      * Creates a UrlList,
      * which will update to show all
@@ -94,7 +94,7 @@ export class App{
 	createUrlList(elementId){
         this.urlList = new UrlList(elementId);
 	}
-    
+
     /*
      * Sets which element will display the URL for the current path
      */
@@ -105,7 +105,7 @@ export class App{
         }
         this.pathUrlElementId = elementId;
     }
-    
+
     /*
      * When the element with the given ID is clicked,
      * copies the path URL to the clipboard
@@ -129,7 +129,7 @@ export class App{
             alert("Copied link");
         };
     }
-    
+
     /*
      * After calling this method,
      * when the element with the given ID is clicked,
@@ -144,12 +144,47 @@ export class App{
             this.canvas.download(this.currentPath.getURL() + ".svg");
         };
     }
-	
-    
+
+    /*
+    Adds functionality to the input element with the given ID.
+    When the user chooses a folder using this input element,
+    populates the application with the wayfinding data in that folder.
+    */
+    addImportButton(elementId){
+        let e = document.getElementById(elementId);
+        if(e === null){
+            throw new Error("Couldn't find element with ID " + elementId);
+        }
+        e.onchange = async ()=>{
+            let files = e.files;
+            let fileText;
+            for(let file of files){
+                console.log(file);
+                if(file.name.endsWith("NodeCoords.csv")){
+                    fileText = await file.text();
+                    this.nodeDatabase.parseNodeData(fileText);
+                    console.log("done parsing node data");
+                } else if(file.name.endsWith("NodeConn.csv")){
+                    fileText = await file.text();
+                    this.nodeDatabase.parseConnData(fileText);
+                    console.log("done parsing conn data");
+                } else if(file.name.endsWith("Labels.csv")){
+                    fileText = await file.text();
+                    this.nodeDatabase.parseNameToId(fileText);
+                    console.log("done parsing label data");
+                } else if(file.name.endsWith("png")){
+                    await this.canvas.setImage(URL.createObjectURL(file));
+                }
+            }
+            console.log("done");
+        };
+    }
+
+
     /*
      * Path related methods.
      */
-    
+
 	setPath(path){
         if(!path.valid){
             throw new Error("Invalid path: " + path);
@@ -172,7 +207,7 @@ export class App{
         let zy = (bh === 0) ? 0 : this.canvas.destHeight / bh;
         let zoom = Math.min(zx, zy, 0.5);
         this.canvas.draw.zoom(zoom);
-        
+
         //AFTER zooming in, get the size of the viewbox
         let w = this.canvas.draw.viewbox().width;
         let h = this.canvas.draw.viewbox().height;
@@ -192,7 +227,7 @@ export class App{
         console.log(`Zoom is the max of ${zx}, ${zy}, 0.5`);
         */
     }
-    
+
     /*
      * Updates the path to reflect the input of this' start and end input boxes
      */
@@ -212,30 +247,30 @@ export class App{
             throw new Error("Invalid path: ", newPath);
         }
 	}
-    
+
 	getPath(){
 		return this.currentPath;
 	}
-	
+
 	getNodeDB(){
 		return this.nodeDatabase;
 	}
-	
+
     //working here #######################################
-    
+
     //move some of the stuff from importDataInto(master) to this
 	async notifyImportDone(responses){
 		/*
 		Called after the initial import.
 		Updates this' various components with the newly imported data.
-		
+
 		1. Sets the size of the canvas
 		2. Populates the TextBoxes
 		3. Sets the default path
 		*/
         const params = new QrCodeParams();
         this.mode = params.wayfindingMode;
-        
+
         console.time("set image");
 		await this.canvas.setImage(responses.get("map image"));
         console.timeEnd("set image");
@@ -244,25 +279,25 @@ export class App{
         this.nodeDatabase.parseNameToId(responses.get("labels"));
 		const upperLeft = this.nodeDatabase.getNode(-1);
 		const lowerRight = this.nodeDatabase.getNode(-2);
-		
+
         let startId;
         let endId;
-        
+
         this.start.addOptions(this.getNodeDB().getAllNames());
 		this.end.addOptions(this.getNodeDB().getAllNames());
-        
+
         if(params.startMode === QrCodeParams.ID_MODE){
             let names = this.nodeDatabase.getNode(params.start).getLabels();
             if(names.length > 0){
                 this.start.setInput(names[0]);
             }
             startId = params.start;
-            
+
         } else {
             startId = this.nodeDatabase.getIdByString(params.start);
             this.start.setInput(params.start);
         }
-        
+
         if(params.endMode === QrCodeParams.ID_MODE){
             let names = this.nodeDatabase.getNode(params.end).getLabels();
             if(names.length > 0){
@@ -273,28 +308,28 @@ export class App{
             endId = this.nodeDatabase.getIdByString(params.end);
             this.end.setInput(params.end);
         }
-        
+
         //params.displayData();
-        
+
 		this.canvas.setCorners(
 			upperLeft.x,
 			upperLeft.y,
 			lowerRight.x,
 			lowerRight.y
 		);
-        
+
 		this.setPath(new Path(
-			startId, 
-			endId, 
+			startId,
+			endId,
 			this
 		));
-		
+
 		if(params.devMode){
 			this.addDevTools();
 			console.log("adding dev");
 		}
 	}
-	
+
     addDevTools(){
 		/*
 		Adds divs to to webpage which will allow
@@ -316,21 +351,21 @@ export class App{
         addTool("Test stack", ()=>testStack());
         addTool("Test min heap", ()=>testMinHeap());
 	}
-    
+
 	testAllPaths(){
 		//developer tool. Detects any paths between any two nodes that cannot exist
-		
+
 		let source = this;
 		let nodeDB = source.getNodeDB();
-		
+
 		let points = [];
 		points = points.concat(nodeDB.getAllNames());
-		
+
 		function checkPath(startStr, endStr){
 			try{
 				let id1 = nodeDB.getIdByString(startStr);
 				let id2 = nodeDB.getIdByString(endStr);
-				
+
 				//getIdByString will log any errors
 				if(id1 != null && id2 != null){
 					let path = new Path(id1, id2, source);
@@ -342,7 +377,7 @@ export class App{
 				console.log(e.stack);
 			}
 		}
-		
+
 		alert("Please wait while I process " + (points.length * points.length) + " paths...");
 		for(let i = 0; i < points.length; i++){
 			for(let j = 0; j < points.length; j++){
