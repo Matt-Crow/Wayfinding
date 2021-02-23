@@ -14,60 +14,68 @@ export class NodeDB{
 		Keys are integers, the node's ID, values are Node objects.
 		Note that while we could store them as an array,
 		we have nodes with negative IDs, and there are gaps in the IDs.
-		
-		Future versions of the node manager can get rid of this, 
+
+		Future versions of the node manager can get rid of this,
 		but shifting nodes -1 and -2 could be a problem,
 		as those specific IDs denote map corners.
 		*/
-		
+
 		this.stuffToNodeId = new Map();
 		/*
 		keys are a string, the name of the point (building/room/class name).
 		value is associated node ID.
-		
+
 		Since we go by the pattern of "something" has a node ID associated with it,
 		and we don't need to differentiate between rooms/buildings/etc,
 		I can store them all in one place.
-		
+
 		Not sure which is most efficient:
 		-Map
 		-Object
 		-Array
 		*/
-       
+
        this.allLabels = []; //need this for closest match
     }
-    
+
 	parseNodeData(responseText){
 		/*
 		Reads the response from the node spreadsheet,
 		and creates and stores node objects based on that data.
-		
-		@param data : the result of an HTTP request to the node data spreadsheet, 
+
+		@param data : the result of an HTTP request to the node data spreadsheet,
 		can be either a string, or a two-dimentional array.
 		*/
-		
+
 		let data = formatResponse(responseText);
 		let row;
 		let id;
 		let x;
 		let y;
-		
+
+		let newNode;
 		let errors = [];
-		
+
 		//skip headers
 		for(let i = 1; i < data.length; i++){
 			row = data[i];
 			id = parseInt(row[0]);
 			x = parseFloat(row[1]);
 			y = parseFloat(row[2]);
-			
+
 			if(!isNaN(id) && !isNaN(x) && !isNaN(y)){
-				this.nodes.set(id, new Node(
+				newNode = new Node(
 					id,
 					x,
 					y
-				));
+				);
+				this.nodes.set(id, newNode);
+				// add cached labels to that node
+				for(let pair of this.stuffToNodeId.entries()){
+					if(pair[1] == id){
+						newNode.addLabel(pair[0]);
+					}
+				}
 			} else {
 				errors.push("An error occured for the line " + row.join());
 			}
@@ -77,7 +85,7 @@ export class NodeDB{
 			errors.forEach(msg => console.log("--" + msg));
 		}
 	}
-	
+
 	parseNameToId(responseText){
 		/*
 		responseText is the result of an HTTP request to a csv file, formatted as:
@@ -85,48 +93,46 @@ export class NodeDB{
 			name, node id
 			name, node id
 			...
-		
+
 		This can be given as either a two-dimensional array,
 		or a string, which it will convert into a two-d array.
-		
+
 		Inserts the name and id rows into this' stuffToNodeId Map
 		*/
 		let db = this;
 		let name;
 		let id;
 		let data = formatResponse(responseText);
-		let firstRow = true;
-        
+        data.shift(); // remove headers
 		data.forEach(row => {
-			if(firstRow){
-                firstRow = false;
-                //skip first row
-            } else {
-                try{
-                    name = row[0].toString().toUpperCase();
-                    id = parseInt(row[1]);
-        			if(isNaN(id)){
-        				throw new Error(`Oops! Node ID of "${row[1]}": ID must be a number`);
-        			} else {
-            			db.stuffToNodeId.set(name, id);
-                        this.getNode(id).addLabel(name);
-                        this.allLabels.push(name);
-                	}
-				
-            	} catch(err){
-                	console.error("Invalid row: " + row);
-                    console.error(err.message);
-                }
+            try{
+                name = row[0].toString().toUpperCase();
+                id = parseInt(row[1]);
+    			if(isNaN(id)){
+    				throw new Error(`Oops! Node ID of "${row[1]}": ID must be a number`);
+    			} else {
+        			db.stuffToNodeId.set(name, id);
+					try {
+                    	this.getNode(id).addLabel(name);
+					} catch(e){
+						// node with id not set yet.
+					}
+                    this.allLabels.push(name);
+            	}
+
+        	} catch(err){
+            	console.error("Invalid row: " + row);
+                console.error(err.message);
             }
 		});
 	}
-	
+
 	parseConnData(responseText){
 		/*
 		@param responseText : the result of an HTTP request to the node data spreadsheet
 		*/
 		let data = formatResponse(responseText);
-		
+
 		let row;
 		for(let i = 1; i < data.length; i++){
 			row = data[i];
@@ -140,19 +146,19 @@ export class NodeDB{
 		let db = this;
 		this.getAll().forEach(node => node.loadAdj(db));
 	}
-	
+
 	parseImageResponse(csvFile){
 		/*
         @param csvFile : a CsvFile object containing the result of a HTTP request to our image spreadsheet
         sets the connection images of nodes.
-		
+
 		Might redo this once we start working on images
         */
 		let data = csvFile.getNonHeaders();
 		let fromCol = csvFile.indexOfCol(["From", "node1", "n1"]);
 		let toCol = csvFile.indexOfCol(["to", "node2", "n2"]);
 		let imgCol = csvFile.indexOfCol(["image", "img", "photo", "url"]);
-		
+
 		//Skip header
 		for(let i = 1; i < data.length; i++){
 			//make sure all 3 rows exist
@@ -166,29 +172,29 @@ export class NodeDB{
 			}
 		}
 	}
-	
+
 	parseClassResponse(csvFile){
 		/*
-		@param responseText : the response from an XMLHTTP request 
+		@param responseText : the response from an XMLHTTP request
 		to a sheet containing class numbers and rooms
-		
+
 		We currenly can't use parseNameToId on this, as the class to building-room table does not use node IDs.
 		Once I implement that feature to the node manager, we can eliminate this.
 		*/
 		let missingRooms = [];
-		
+
 		let data =        csvFile.getNonHeaders();
 		let classCol =    csvFile.indexOfCol(["CLASS NUMBER", "CLASS"]);
         let buildingCol = csvFile.indexOfCol(["BUILDING"]);
 		let roomCol =     csvFile.indexOfCol(["ROOM"]);
-		
+
 		let row;
 		let nodeId;
-		
+
 		for(let i = 1; i < data.length; i++){
 			row = data[i];
 			nodeId = this.getIdByString((row[buildingCol] + " " + row[roomCol]).toUpperCase());
-			
+
 			if(nodeId == undefined){
 				if(!missingRooms.includes(row[buildingCol] + " " + row[roomCol])){
 					missingRooms.push(row[buildingCol] + " " + row[roomCol]);
@@ -205,7 +211,7 @@ export class NodeDB{
 			console.log("Check the current room to node file in the google drive to see if these rooms are missing nodes.");
 		}
 	}
-	
+
 	getNode(id){
 		/*
 		@param id : a number, the ID of the node to return
@@ -216,26 +222,26 @@ export class NodeDB{
 		try{
 			ret = this.nodes.get(parseInt(id));
 			if(!(ret instanceof Node)){
-				throw Error("Node with id of " + id + " does not exist"); 
+				throw Error("Node with id of " + id + " does not exist");
 			}
 		} catch(e){
 			console.log(e.stack);
 		}
 		return ret;
 	}
-	
+
 	getIdByString(string){
 		/*
 		@param string : a string, what to search for in buildings, rooms, and class numbers
-		
+
 		returns an integer, the id of the node with the given string associated with it, or undefined if it doesn't exist
-		
+
 		may move this to getNode, just making it check if parameter is integer or string. Could cause problems with class numbers
 		*/
-		
+
         //first, try the easy solution
 		let ret = this.stuffToNodeId.get(string.toString().toUpperCase());
-		
+
         //nope. Need to find the closest match
         if(ret === undefined){
             ret = this.stuffToNodeId.get(closestMatch(string.toString().toUpperCase(), this.allLabels, true));
@@ -243,25 +249,25 @@ export class NodeDB{
 		if(ret === undefined){
 			console.log("Couldn't find node identified by " + string);
 		}
-		
+
 		return ret;
 	}
-	
+
 	getStringsById(id){
 		/*
 		returns all labels associated with the given node
 		*/
 		let ret = [];
-		
+
 		this.stuffToNodeId.forEach((nodeId, label) =>{
 			if(nodeId === id){
 				ret.push(label);
 			}
 		});
-		
+
 		return ret;
 	}
-	
+
 	getAllNames(){
 		/*
 		Returns an array of strings,
@@ -270,14 +276,14 @@ export class NodeDB{
 		*/
 		return Array.from(this.stuffToNodeId.keys());
 	}
-	
+
 	getAll(){
 		/*
 		Gets all the nodes stored here
 		*/
 		return Array.from(this.nodes.values());
 	}
-	
+
 	prettyPrintStuffToId(){
 		let longestName = 0;
 		this.getAllNames().forEach(name => {
@@ -288,7 +294,7 @@ export class NodeDB{
 		let spaceCount = 0;
 		let padding = " ";
 		let i;
-		
+
 		this.stuffToNodeId.forEach((id, name) => {
 			spaceCount = longestName - name.length;
 			padding = " ";
@@ -302,7 +308,7 @@ export class NodeDB{
 		//used to detect connection errors
 		this.getAll().forEach(node => node.generateDiv(main));
 	}
-	
+
 	drawAll(canvas){
 		//canvas is an instance of the program's Canvas object, not HTML canvas
 		this.getAll().forEach(node => {

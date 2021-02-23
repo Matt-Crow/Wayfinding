@@ -176,6 +176,8 @@ export class App{
                     await this.canvas.setImage(URL.createObjectURL(file));
                 }
             }
+            console.log("refreshing...");
+            await this.refresh();
             console.log("done");
         };
     }
@@ -277,7 +279,13 @@ export class App{
         this.nodeDatabase.parseNodeData(responses.get("Node coordinates"));
         this.nodeDatabase.parseConnData(responses.get("Node connections"));
         this.nodeDatabase.parseNameToId(responses.get("labels"));
-		const upperLeft = this.nodeDatabase.getNode(-1);
+		await refresh();
+	}
+
+    async refresh(){
+        const params = new QrCodeParams();
+
+        const upperLeft = this.nodeDatabase.getNode(-1);
 		const lowerRight = this.nodeDatabase.getNode(-2);
 
         let startId;
@@ -328,7 +336,7 @@ export class App{
 			this.addDevTools();
 			console.log("adding dev");
 		}
-	}
+    }
 
     addDevTools(){
 		/*
