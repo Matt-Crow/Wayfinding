@@ -3,11 +3,13 @@ import {formatResponse} from '../dataFormatting/csv.js';
 import {closestMatch} from "../htmlInterface/elementInterfaces.js";
 
 /*
-NodeDB is used by the Main class to store the data used by the program.
+Formerly called a "Node database"
+
+Graph is used by the Main class to store the data used by the program.
 It is initialized, filled with data, and applied to an instance of Main in
 the HTML file.
 */
-export class NodeDB{
+export class Graph{
 	constructor(){
 		/*
 		Keys are integers, the node's ID, values are Node objects.
@@ -21,7 +23,7 @@ export class NodeDB{
 		this.idToNode = new Map();
 
 		/*
-		Store these in the nodeDB instead of in the node itself.
+		Store these in the graph instead of in the node itself.
 		This prevents issues when connections are imported before coordinates
 		number => number[]
 		*/
@@ -97,23 +99,23 @@ export class NodeDB{
 
 		Inserts the name and id rows into this' stuffToNodeId Map
 		*/
-		let db = this;
+		let graph = this;
 		let name;
 		let id;
 		let data = formatResponse(responseText);
         data.shift(); // remove headers
-		data.forEach(row => {
+		data.forEach((row)=>{
             try{
                 name = row[0].toString().toUpperCase();
                 id = parseInt(row[1]);
     			if(isNaN(id)){
     				throw new Error(`Oops! Node ID of "${row[1]}": ID must be a number`);
     			} else {
-        			db.stuffToNodeId.set(name, id); // move to using just this
-					if(!db.idToLabel.has(id)){
-						db.idToLabel.set(id, []);
+        			graph.stuffToNodeId.set(name, id);
+					if(!graph.idToLabel.has(id)){
+						graph.idToLabel.set(id, []);
 					}
-					db.idToLabel.get(id).push(name);
+					graph.idToLabel.get(id).push(name);
                     this.allLabels.push(name);
             	}
 
@@ -187,8 +189,7 @@ export class NodeDB{
 	getNode(id){
 		/*
 		@param id : a number, the ID of the node to return
-		@return a Node from the database with an ID matching the once passed in
-		TODO: decide what to do about invalid IDs
+		@return a Node from the graph with an ID matching the once passed in
 		*/
 		let ret = null;
 		try{
@@ -227,23 +228,8 @@ export class NodeDB{
             ret = this.stuffToNodeId.get(closestMatch(string.toString().toUpperCase(), this.allLabels, true));
         }
 		if(ret === undefined){
-			console.log("Couldn't find node identified by " + string);
+			console.error("Couldn't find node identified by " + string);
 		}
-
-		return ret;
-	}
-
-	getStringsById(id){
-		/*
-		returns all labels associated with the given node
-		*/
-		let ret = [];
-
-		this.stuffToNodeId.forEach((nodeId, label) =>{
-			if(nodeId === id){
-				ret.push(label);
-			}
-		});
 
 		return ret;
 	}

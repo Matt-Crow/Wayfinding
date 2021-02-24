@@ -1,6 +1,6 @@
 The program begins in index.html
 
-downloads the google api, 
+downloads the google api,
 after which it inserts the index.js module into the head of the document,
 and initializes the program.
 
@@ -8,28 +8,28 @@ initializing the program:
 	Creates a App object, which is used to store otherwise global variables,
     the App links the various HTML components to itself,
     so as to connect the data and GUI together.
-	
+
 	Next, the program downloads the data used by the program, then:
 		Draws the map image downloaded from the data on the SVG element
-		The NodeDB reads the response from the node position and connection files, creating many Node objects, representing points on campus,
+		The Graph reads the response from the node position and connection files, creating many Node objects, representing points on campus,
 		The Nodes' coordinate system is not the same as the SVG image's, so we have to scale them.
 		Nodes -1 and -2 mark the upper leftmost and lower rightmost points on the campus, so all other nodes lie between them.
 		After creating those Nodes, sets the Canvas' corners to nodes -1 and -2. This means whatever coordinates node -1 has translate to the upper-left corner of the SVG element, and node -2 corresponds to the lower right.
 		With that in mind, each Node's coordinates are a set percentage of the way between Nodes -1 and -2's coordinates, and thus are the same percentage of the way between them on the SVG image.
-		
-		Next, the NodeDB constructs a string to node ID table of buildings, rooms, and other labels.
+
+		Next, the Graph constructs a string to node ID table of buildings, rooms, and other labels.
 		the App object populates the two input boxes with all the strings from this table, meaning that when the user starts typing, the string that most closely matches what they are typing will appear below the input box.
 		the program then reads the parameters passed to the URL, and if any of the parameters are "startID=" or "endID=", it will set the default path's start and end points based on the node IDs passed in.
 		draw the current path.
 
 Upon receiving input, the input boxes will search through their "options" for what closest matches what is being typed, then displays the match.
-Upon clicking the "Draw Path" button, takes the closest match from the two input boxes, and grabs the corresponding node ids from the NodeDB
+Upon clicking the "Draw Path" button, takes the closest match from the two input boxes, and grabs the corresponding node ids from the Graph
 these node IDs are then used to construct a path using Djdkstra's algorithm, then, if the result is valid, sets the Main object's path to the newly constructed one.
 
 What each file does:
 	/dataFormatting
 		-csv.js: provides functions for "reverting" the csv files downloaded by the program from just a string of comma seperated values back into a two-dimensional 	array.
-		-nodeDB.js: acts as a fake database to store the data used by the program.
+		-graph.js: acts as a fake database to store the data used by the program.
 	/getRequests
 		-importData.js imports data from the google drive into the program.
 	/htmlInterface
@@ -42,5 +42,5 @@ What each file does:
 		-path.js: provides the Path class, used to find paths between nodes.
 	/webpages
 		-index.js: contains all the code to run once google api is loaded
-	
+
 	app.js provides the App class, which is used to store otherwise global variables. One is created by index.js, then stuff gets passed into it. We can then pass the App object to whatever function we want so it can access the "global" variables.

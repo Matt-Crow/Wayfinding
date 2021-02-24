@@ -188,7 +188,7 @@ class UrlList{
         let ele;
         let a;
         //add a list item for each URL on that node
-        path.dataSource.nodeDatabase.getLabelsForId(node.id).forEach((label)=>{
+        path.dataSource.graph.getLabelsForId(node.id).forEach((label)=>{
             label = label.toLowerCase();
             if(label.includes("http")){
                 ele = document.createElement("li");

@@ -6,7 +6,7 @@ It also takes a lot of code out of the main HTML file.
 
 import { Path, testStack, testMinHeap } from         "./nodes/path.js";
 import { QrCodeParams } from "./htmlInterface/qrCodes.js";
-import { NodeDB } from       "./dataFormatting/nodeDB.js";
+import { Graph } from       "./dataFormatting/graph.js";
 import {
     Canvas,
     TextBox,
@@ -25,7 +25,7 @@ export class App{
         this.pathUrlElementId = null;
 
         this.currentPath = null;
-        this.nodeDatabase = new NodeDB();
+        this.graph = new Graph();
 
 		this.mode = "WAYFINDING";
     }
@@ -52,7 +52,7 @@ export class App{
     /*
      * Creates a TextBox from the given elements.
      * The app uses these elements to read and display input.
-     * Populates said TextBoxes with the contents of this' fake database when notifyImportDone is called.
+     * Populates said TextBoxes with the labels from the imported graph when notifyImportDone is called.
      */
 	createStartInputBox(inputBoxId, resultDisplayId){
 		this.start = new TextBox(inputBoxId, resultDisplayId);
@@ -61,7 +61,7 @@ export class App{
     /*
      * Creates a TextBox from the given elements.
      * The app uses these elements to read and display input.
-     * Populates said TextBoxes with the contents of this' fake database when notifyImportDone is called.
+     * Populates said TextBoxes with the labels from the imported graph when notifyImportDone is called.
      */
 	createEndInputBox(inputBoxId, resultDisplayId){
 		this.end = new TextBox(inputBoxId, resultDisplayId);
@@ -162,15 +162,15 @@ export class App{
                 console.log(file);
                 if(file.name.endsWith("NodeCoords.csv")){
                     fileText = await file.text();
-                    this.nodeDatabase.parseNodeData(fileText);
+                    this.graph.parseNodeData(fileText);
                     console.log("done parsing node data");
                 } else if(file.name.endsWith("NodeConn.csv")){
                     fileText = await file.text();
-                    this.nodeDatabase.parseConnData(fileText);
+                    this.graph.parseConnData(fileText);
                     console.log("done parsing conn data");
                 } else if(file.name.endsWith("Labels.csv")){
                     fileText = await file.text();
-                    this.nodeDatabase.parseNameToId(fileText);
+                    this.graph.parseNameToId(fileText);
                     console.log("done parsing label data");
                 } else if(file.name.endsWith("png")){
                     await this.canvas.setImage(URL.createObjectURL(file));
@@ -240,8 +240,8 @@ export class App{
         if(!this.end.isValid()){
             throw new Error("Invalid: " + this.end.getResult());
         }
-        let start = this.getNodeDB().getIdByString(this.start.getResult());
-        let end = this.getNodeDB().getIdByString(this.end.getResult());
+        let start = this.getGraph().getIdByString(this.start.getResult());
+        let end = this.getGraph().getIdByString(this.end.getResult());
         let newPath = new Path(start, end, this);
         if(newPath.valid){
             this.setPath(newPath);
@@ -254,8 +254,8 @@ export class App{
 		return this.currentPath;
 	}
 
-	getNodeDB(){
-		return this.nodeDatabase;
+	getGraph(){
+		return this.graph;
 	}
 
     //working here #######################################
@@ -276,29 +276,29 @@ export class App{
         console.time("set image");
 		await this.canvas.setImage(responses.get("map image"));
         console.timeEnd("set image");
-        this.nodeDatabase.parseNodeData(responses.get("Node coordinates"));
-        this.nodeDatabase.parseConnData(responses.get("Node connections"));
-        this.nodeDatabase.parseNameToId(responses.get("labels"));
+        this.graph.parseNodeData(responses.get("Node coordinates"));
+        this.graph.parseConnData(responses.get("Node connections"));
+        this.graph.parseNameToId(responses.get("labels"));
 		await refresh();
 	}
 
     async refresh(){
         const params = new QrCodeParams();
 
-        const upperLeft = this.nodeDatabase.getNode(-1);
-		const lowerRight = this.nodeDatabase.getNode(-2);
+        const upperLeft = this.graph.getNode(-1);
+		const lowerRight = this.graph.getNode(-2);
         console.log(upperLeft);
         console.log(lowerRight);
 
         let startId;
         let endId;
 
-        this.start.addOptions(this.getNodeDB().getAllNames());
-		this.end.addOptions(this.getNodeDB().getAllNames());
+        this.start.addOptions(this.getGraph().getAllNames());
+		this.end.addOptions(this.getGraph().getAllNames());
 
         if(params.startMode === QrCodeParams.ID_MODE){
             try {
-                let names = this.nodeDatabase.getLabelsForId(params.start);
+                let names = this.graph.getLabelsForId(params.start);
                 if(names.length > 0){
                     this.start.setInput(names[0]);
                 }
@@ -308,13 +308,13 @@ export class App{
             startId = params.start;
 
         } else {
-            startId = this.nodeDatabase.getIdByString(params.start);
+            startId = this.graph.getIdByString(params.start);
             this.start.setInput(params.start);
         }
 
         if(params.endMode === QrCodeParams.ID_MODE){
             try {
-                let names = this.nodeDatabase.getLabelsForId(params.end);
+                let names = this.graph.getLabelsForId(params.end);
                 if(names.length > 0){
                     this.end.setInput(names[0]);
                 }
@@ -323,7 +323,7 @@ export class App{
             }
             endId = params.end;
         } else {
-            endId = this.nodeDatabase.getIdByString(params.end);
+            endId = this.graph.getIdByString(params.end);
             this.end.setInput(params.end);
         }
 
@@ -349,7 +349,7 @@ export class App{
 			console.log("adding dev");
 		}
 
-        this.nodeDatabase.drawAll(this.canvas);
+        this.graph.drawAll(this.canvas);
     }
 
     addDevTools(){
@@ -378,15 +378,15 @@ export class App{
 		//developer tool. Detects any paths between any two nodes that cannot exist
 
 		let source = this;
-		let nodeDB = source.getNodeDB();
+		let graph = source.getGraph();
 
 		let points = [];
-		points = points.concat(nodeDB.getAllNames());
+		points = points.concat(graph.getAllNames());
 
 		function checkPath(startStr, endStr){
 			try{
-				let id1 = nodeDB.getIdByString(startStr);
-				let id2 = nodeDB.getIdByString(endStr);
+				let id1 = graph.getIdByString(startStr);
+				let id2 = graph.getIdByString(endStr);
 
 				//getIdByString will log any errors
 				if(id1 != null && id2 != null){

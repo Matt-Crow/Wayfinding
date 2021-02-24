@@ -49,13 +49,13 @@ class Path{
 			this.invalidate();
 		}
         if(this.startId === this.endId){
-			this.nodePath = [this.dataSource.getNodeDB().getNode(this.startId)];
+			this.nodePath = [this.dataSource.getGraph().getNode(this.startId)];
 			this.pathLength = 0;
 			return;
         }
 
         // start by setting everything up
-		let nodeDB = this.dataSource.getNodeDB();
+		let graph = this.dataSource.getGraph();
         //from and to are nodes
         function travelInfo(from, to){
             return {
@@ -70,7 +70,7 @@ class Path{
         let travelLog = new Stack();
         let travelHeap = new MinHeap((ti1, ti2)=>ti1.dist < ti2.dist);
         let visited = new Map();
-        let curr = nodeDB.getNode(this.startId);
+        let curr = graph.getNode(this.startId);
         let t = travelInfo(curr, curr);
 
         //find the path
@@ -78,9 +78,9 @@ class Path{
         visited.set(this.startId, true);
         while(curr.id !== this.endId){
             //get everything adjacent to curr
-            nodeDB.getIdsAdjTo(curr.id).forEach((nodeId)=>{
+            graph.getIdsAdjTo(curr.id).forEach((nodeId)=>{
                 if(!visited.has(nodeId)){
-                    t = travelInfo(curr, nodeDB.getNode(nodeId));
+                    t = travelInfo(curr, graph.getNode(nodeId));
                     t.dist += travelLog.top.value.dist; //this is accumulated distance
                     travelHeap.siftUp(t);
                 }
@@ -125,7 +125,7 @@ class Path{
             }
         }
 
-        this.nodePath = [nodeDB.getNode(this.startId)];
+        this.nodePath = [graph.getNode(this.startId)];
         while(!reversed.isEmpty()){
             this.nodePath.push(reversed.pop().to);
         }

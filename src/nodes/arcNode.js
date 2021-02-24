@@ -12,7 +12,7 @@ export class Node{
         x and y are coordinates on the map image,
 		as extracted from the node spreadsheet.
 
-        Each node has a series of connected nodes, but these are stored in nodeDB
+        Each node has a series of connected nodes, but these are stored in graph
 		*/
 
         try {
@@ -68,7 +68,7 @@ export class Node{
 			if (path !== undefined) {
 				path.draw(canvas);
 			}
-			main.getNodeDB().generateDivs(main);
+			main.getGraph().generateDivs(main);
 		};
 
         //logs the node's data
