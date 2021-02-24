@@ -1,6 +1,6 @@
-/* 
+/*
  * This file contains all the classes that are used to interact with HTML elements.
- * 
+ *
  * Upon changing the index.html file, you will likely need to change this one.
  */
 
@@ -9,7 +9,7 @@
 
 /*
 The x and y coordinates given by the coordinate spreadsheet are those nodes' position in the node management program where the data is extracted from.
-Since the node manager and SVG canvas use different coordinate scales (node manager may be a 1000 by 1500 grid, SVG 800 by 1000, for example), 
+Since the node manager and SVG canvas use different coordinate scales (node manager may be a 1000 by 1500 grid, SVG 800 by 1000, for example),
 so we need to convert coordinates in the node manager to coordinates on the SVG canvas.
 This way, we can easily draw nodes on the canvas.
 
@@ -26,23 +26,23 @@ class Canvas{
         this.image = null;      // the image element this gets its size from
         this.destWidth = 0;     // dimensions of the map image
         this.destHeight = 0;
-        
+
         this.sourceMinX = 0;    // coordinates of the upper-leftmost and lower-rightmost nodes
         this.sourceMinY = 0;
         this.sourceMaxX = 0;
         this.sourceMaxY = 0;
-        
+
         this.color = null;
     }
-	
+
 	//needs to be async because draw.image makes a requests to get the image
     async setImage(src){
 		return new Promise((resolve, reject)=>{
             this.image = this.draw.image(src);
 			this.image.loaded(()=>{
                 /*
-                 * For some reason svg.js is having an 
-                 * issue where it doesn't render the 
+                 * For some reason svg.js is having an
+                 * issue where it doesn't render the
                  * entire image until the user clicks
                  * and moves the image. Setting the
                  * viewbox to itself forces it to reload,
@@ -53,9 +53,9 @@ class Canvas{
 				resolve();
 			});
 		});
-        
+
     }
-	
+
     setColor(color){
 		this.color = color;
 	}
@@ -67,7 +67,7 @@ class Canvas{
 			}
 		}
 	}
-    
+
     /*
      * Drawing methods.
      * For all of these methods,
@@ -75,8 +75,8 @@ class Canvas{
      * These methods automatically scale the points
      * to SVGspace.
      */
-    
-    
+
+
 	rect(x, y, w, h){
 		return this.draw.rect(w, h)
 			.attr({fill: this.color})
@@ -84,19 +84,19 @@ class Canvas{
 	}
 	text(text, x, y){
 		return this.draw.text(text.toString())
-			.move(this.x(x) - 10, 
+			.move(this.x(x) - 10,
 				  this.y(y) - 20
 				 ).attr({fill: this.color});
 	}
 	line(x1, y1, x2, y2){
 		return this.draw.line(
-			this.x(x1), 
-			this.y(y1), 
-			this.x(x2), 
+			this.x(x1),
+			this.y(y1),
+			this.x(x2),
 			this.y(y2)
 		).stroke({color: this.color, width: 3});
 	}
-    
+
     // parameters are the corners of the map image used
 	setCorners(x1, y1, x2, y2){
 		this.sourceMinX = x1;
@@ -105,7 +105,7 @@ class Canvas{
 		this.sourceMaxY = y2;
 		this.calcSize();
 	}
-    
+
     /*
     Recalculates the size of the SVG image,
     so that way nodes don't appear skewed if the SVG changes size.
@@ -117,15 +117,15 @@ class Canvas{
 		this.destWidth = this.image.node.width.baseVal.value;
 		this.destHeight = this.image.node.height.baseVal.value;
 	}
-    
+
     /*
     Calculates the width and height of the source coordinates
     */
-	calcSize(){	
+	calcSize(){
 		this.mapWidth = this.sourceMaxX - this.sourceMinX;
 		this.mapHeight = this.sourceMaxY - this.sourceMinY;
 	}
-    
+
     // convert a coordinate on the map image
 	// to a point on the SVG canvas
 	x(coord){
@@ -138,13 +138,13 @@ class Canvas{
 	}
     download(name){
         //https://stackoverflow.com/questions/13405129/javascript-create-and-save-file?noredirect=1&lq=1
-        
+
         //need to resize the SVG to contain the entire image
         let oldViewBox = this.draw.viewbox();
         this.draw.viewbox(0, 0, this.destWidth, this.destHeight);
         let result = this.draw.svg();
         this.draw.viewbox(oldViewBox);
-        
+
         let file = new Blob([result], {type: "image/svg+xml"});
         let a = document.createElement("a");
         let url = URL.createObjectURL(file);
@@ -178,7 +178,7 @@ class UrlList{
             throw new Error("Could not find element with id " + elementId);
         }
     }
-    
+
     update(path){
         //remove all previous links
         while(this.element.hasChildNodes()){
@@ -188,7 +188,7 @@ class UrlList{
         let ele;
         let a;
         //add a list item for each URL on that node
-        node.getLabels().forEach((label)=>{
+        path.dataSource.nodeDatabase.getLabelsForId(node.id).forEach((label)=>{
             label = label.toLowerCase();
             if(label.includes("http")){
                 ele = document.createElement("li");
@@ -209,7 +209,7 @@ class UrlList{
  * It functions like an option dropdown in that it can only have valid values selected,
  * but instead of showing all the user's options at once,
  * if shows the option from its option list which most closely matches the user's input.
- * 
+ *
  * after creating a TextBox, you will need to populate its option by calling...
  * textBox.addOptions(anArray);
  * calling the getResult method will return the option which is closest to the user input.
@@ -239,13 +239,13 @@ class TextBox{
         this.box.oninput = this.updateResult.bind(this);
         this.closest = null;
     }
-    
+
     /*
      * @param options: an array of strings, or just a single string. The options to add.
      */
     addOptions(options){
 		let b = this;
-		
+
 		if(!Array.isArray(options)){
 			options = [options];
 		}
@@ -256,30 +256,30 @@ class TextBox{
 			}
 		});
 	}
-	
+
     // makes the result search for the closest match in options to what the user's entered
 	updateResult(){
 		this.closest = closestMatch(this.box.value, this.options, true);
         this.resultElement.innerHTML = this.closest;
 	}
-    
+
 	//legal input was entered
 	//want to make sure the closest match is both in the options, and not the default option
 	isValid(){
 		return this.closest !== null && this.options.indexOf(this.closest.toUpperCase()) > 0;
 	}
-    
+
     //@param str : a string, what to put in the input box
 	//basically makes the program act as the user, typing str in the box
 	setInput(str){
 		this.box.value = str;
 		this.box.oninput();
 	}
-    
+
     /*
     @return : a string, the closest match to what the user inputted
     */
-	getResult(){	
+	getResult(){
 		return this.closest;
 	}
 };
@@ -292,19 +292,19 @@ function levenshteinDistance(str1, str2, ignoreCase, debug=false){
     let deleteCost;
 	let insertCost;
 	let changeCost;
-    
+
     if(ignoreCase){
         str1 = str1.toUpperCase();
         str2 = str2.toUpperCase();
     }
-    
+
     for(let y = 0; y < len2 + 1; y++){
         grid.push([]);
         for(let x = 0; x < len1 + 1; x++){
             grid[y].push(0);
         }
     }
-    
+
     //fill in the first row and column
     //you need to delete x characters to convert a string of length x to ""
     for(let y = 0; y < len2 + 1; y++){
@@ -313,7 +313,7 @@ function levenshteinDistance(str1, str2, ignoreCase, debug=false){
     for(let x = 0; x < len1 + 1; x++){
         grid[0][x] = x;
     }
-    
+
     //go through the rest
     for(let y = 1; y < len2 + 1; y++){
         for(let x = 1; x < len1 + 1; x++){
@@ -323,7 +323,7 @@ function levenshteinDistance(str1, str2, ignoreCase, debug=false){
             grid[y][x] = Math.min(deleteCost, insertCost, changeCost);
         }
     }
-    
+
     if(debug){
         console.log("    " + Array.from(str1).join(" "));
         for(let y = 0; y < len2 + 1; y++){
@@ -333,7 +333,7 @@ function levenshteinDistance(str1, str2, ignoreCase, debug=false){
             console.log(((y === 0) ? " " : str2[y - 1]) + " " + grid[y].join(" "));
         }
     }
-    
+
     //lower-right corner contains the number of operations needed to convert str1 to str2
     return grid[len2][len1];
 }
@@ -346,12 +346,12 @@ function closestMatch(str, possibleMatches, ignoreCase, debug=false){
     if(possibleMatches.length === 1){
         return possibleMatches[0];
     }
-    
+
     let bestMatch = null;
     let bestDist = Number.MAX_VALUE;
     let currDist;
     let len = possibleMatches.length;
-    
+
     //                        break upon finding exact match
     for(let i = 0; i < len && bestDist !== 0; i++){
         currDist = levenshteinDistance(str, possibleMatches[i], ignoreCase, debug);
@@ -360,13 +360,13 @@ function closestMatch(str, possibleMatches, ignoreCase, debug=false){
             bestDist = currDist;
         }
     }
-    
+
     return bestMatch;
 }
 
 function testLev(){
     let strings = ["apple", "banana", "orange", "blueberry", "grape"];
-    
+
     strings.forEach((fruit)=>{
         strings.forEach((otherFruit)=>{
             console.log(fruit + " lev dist " + otherFruit + " = " + levenshteinDistance(fruit, otherFruit, false, true));

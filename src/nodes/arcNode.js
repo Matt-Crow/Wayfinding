@@ -33,8 +33,6 @@ export class Node{
         } catch (latLngError) {
             console.log(latLngError);
         }
-
-        this.labels = []; //names for this node
     }
 
 	distanceFrom(n2) {
@@ -42,24 +40,6 @@ export class Node{
 			Math.pow(this.x - n2.x, 2) + Math.pow(this.y - n2.y, 2)
 		);
 	}
-
-    addLabel(label){
-        this.labels.push(label);
-        //insertion sort
-        let len = this.labels.length;
-        let i = len - 2;
-        let temp;
-        while(i > 0 && this.labels[i] < this.labels[i - 1]){
-            temp = this.labels[i];
-            this.labels[i] = this.labels[i - 1];
-            this.labels[i - 1] = temp;
-            i--;
-        }
-    }
-
-    getLabels(){
-        return this.labels.map((i)=>i); // shallow copy
-    }
 
 	draw(canvas) {
 		canvas.setColor("red");

@@ -298,7 +298,7 @@ export class App{
 
         if(params.startMode === QrCodeParams.ID_MODE){
             try {
-                let names = this.nodeDatabase.getNode(params.start).getLabels();
+                let names = this.nodeDatabase.getLabelsForId(params.start);
                 if(names.length > 0){
                     this.start.setInput(names[0]);
                 }
@@ -314,7 +314,7 @@ export class App{
 
         if(params.endMode === QrCodeParams.ID_MODE){
             try {
-                let names = this.nodeDatabase.getNode(params.end).getLabels();
+                let names = this.nodeDatabase.getLabelsForId(params.end);
                 if(names.length > 0){
                     this.end.setInput(names[0]);
                 }

@@ -37,6 +37,8 @@ export class NodeDB{
 		*/
 		this.stuffToNodeId = new Map();
 
+		this.idToLabel = new Map();
+
        this.allLabels = []; //need this for closest match
     }
 
@@ -72,12 +74,6 @@ export class NodeDB{
 					y
 				);
 				this.idToNode.set(id, newNode);
-				// add cached labels to that node
-				for(let pair of this.stuffToNodeId.entries()){
-					if(pair[1] == id){
-						newNode.addLabel(pair[0]);
-					}
-				}
 			} else {
 				errors.push("An error occured for the line " + row.join());
 			}
@@ -114,13 +110,10 @@ export class NodeDB{
     				throw new Error(`Oops! Node ID of "${row[1]}": ID must be a number`);
     			} else {
         			db.stuffToNodeId.set(name, id); // move to using just this
-					try {
-						if(this.idToNode.get(id) != undefined){
-                    		this.getNode(id).addLabel(name);
-						} // suppress warning for now.
-					} catch(e){
-						// node with id not set yet.
+					if(!db.idToLabel.has(id)){
+						db.idToLabel.set(id, []);
 					}
+					db.idToLabel.get(id).push(name);
                     this.allLabels.push(name);
             	}
 
@@ -207,6 +200,10 @@ export class NodeDB{
 			console.error(e);
 		}
 		return ret;
+	}
+
+	getLabelsForId(nodeId){
+		return (this.idToLabel.has(nodeId)) ? this.idToLabel.get(nodeId) : [];
 	}
 
 	getIdsAdjTo(id){
