@@ -25,10 +25,3 @@ export function init(){
 }
 
 init();
-
-/*
-function nextImage() {
-	if (master.getPath() !== undefined) {
-		document.getElementById("image").src = master.getPath().nextImage();
-	}
-}*/

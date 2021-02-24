@@ -20,8 +20,6 @@ class Path{
         nodePath is an array of nodes which serve as the vertexis of this path.
         pathLength is the total length of the distance between all the nodes used in the path
             it doesn't matter what scale it's in, as it is just used to compare in bestPath
-        images is an array of strings, the URLs of the path's images
-        imageInd is the index of the image currently displayed in main (in development)
         */
 
 		this.mode = dataSource.mode;
@@ -35,8 +33,6 @@ class Path{
         this.nodePath = [];
         this.pathLength = 0;
         this.loadPath();
-        this.images = this.getImages();
-        this.imgInd = -1; // increments before getting image
     }
 	loadPath() {
 		/*
@@ -205,34 +201,6 @@ class Path{
 			canvas.line(p[i-1].x, p[i-1].y, p[i].x, p[i].y);
 			p[i].draw(canvas);
 		}
-	}
-	getImages() {
-		// returns an array of strings, each element is the url of a path image
-		let ret = [];
-		let ind = 0;
-		while (ind + 1 < this.nodePath.length) {
-			ind++; // skips 0 so we can compare two nodes
-			let n1 = this.nodePath[ind - 1];
-			let n2 = this.nodePath[ind];
-			if (n1.getHasImage(n2.id)) {
-				let url = n1.getImageTo(n2.id);
-				if (ret.indexOf(url) === -1) {
-					ret.push(url);
-				}
-			}
-		}
-		return ret;
-	}
-	nextImage() {
-		// grabs the next image from this.images
-		// make sure not to go out of range
-		if (this.imgInd + 1 < this.images.length) {
-			this.imgInd++;
-		} else {
-			this.imgInd = 0;
-		}
-
-		return (this.images.length !== 0) ? this.images[this.imgInd] : " "; // if this path has no images, return a blank string
 	}
 };
 

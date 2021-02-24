@@ -151,32 +151,7 @@ export class NodeDB{
 		}
 	}
 
-	parseImageResponse(csvFile){
-		/*
-        @param csvFile : a CsvFile object containing the result of a HTTP request to our image spreadsheet
-        sets the connection images of nodes.
-
-		Might redo this once we start working on images
-        */
-		let data = csvFile.getNonHeaders();
-		let fromCol = csvFile.indexOfCol(["From", "node1", "n1"]);
-		let toCol = csvFile.indexOfCol(["to", "node2", "n2"]);
-		let imgCol = csvFile.indexOfCol(["image", "img", "photo", "url"]);
-
-		//Skip header
-		for(let i = 1; i < data.length; i++){
-			//make sure all 3 rows exist
-			if(data[i][fromCol] !== "" && data[i][toCol] !== "" && data[i][imgCol] !== ""){
-				try{
-					this.getNode(parseInt(data[i][fromCol])).setConnectionImage(data[i][toCol], data[i][imgCol]);
-				} catch(e){
-					console.log("An error occured while parsing image data:");
-					console.log(e.stack);
-				}
-			}
-		}
-	}
-
+	// unused
 	parseClassResponse(csvFile){
 		/*
 		@param responseText : the response from an XMLHTTP request

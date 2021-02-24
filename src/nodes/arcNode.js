@@ -35,12 +35,6 @@ export class Node{
         }
 
         this.labels = []; //names for this node
-
-        this.connectionImages = {};
-		/*
-		key is the id of a node this connects to,
-		value is the URL of an image of the path between this node and that one
-		*/
     }
 
 	distanceFrom(n2) {
@@ -66,21 +60,6 @@ export class Node{
     getLabels(){
         return this.labels.map((i)=>i); // shallow copy
     }
-
-	setConnectionImage(id, url) {
-		// invoked by importImages in import data file
-		// sets the image going from this node to node with id equal to the id passed
-		this.connectionImages[id] = url;
-	}
-	getHasImage(id) {
-		// returns whether or not an image has been given showing the area
-		//between this node and node with id equal to the id passed
-		return this.connectionImages.hasOwnProperty(id);
-	}
-	getImageTo(id) {
-		// returns the image of going from this node to node with id equal to the id passed
-		return this.connectionImages[id];
-	}
 
 	draw(canvas) {
 		canvas.setColor("red");
