@@ -279,7 +279,7 @@ export class App{
         this.graph.parseNodeData(responses.get("Node coordinates"));
         this.graph.parseConnData(responses.get("Node connections"));
         this.graph.parseNameToId(responses.get("labels"));
-		await refresh();
+		await this.refresh();
 	}
 
     async refresh(){
