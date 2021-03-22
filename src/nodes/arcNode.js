@@ -49,37 +49,4 @@ export class Node{
 		canvas.setColor("red");
 		canvas.text(this.id, this.x, this.y);
 	}
-
-	generateDiv(main) {
-		// used for testing
-		let node = this;
-		let canvas = main.getCanvas();
-
-        //draws this node's links
-		let f = function () {
-			node.draw(canvas);
-			node.drawLinks(canvas);
-		};
-
-        //redraws the current path
-		let f2 = function (){
-			canvas.clear();
-			let path = main.getPath();
-			if (path !== undefined) {
-				path.draw(canvas);
-			}
-			main.getGraph().generateDivs(main);
-		};
-
-        //logs the node's data
-		let f3 = function(){
-			console.log(node);
-		};
-
-		node.drawId(canvas);
-		canvas.rect(this.x, this.y, 10, 10).mouseover(f).mouseout(f2).click(f3);
-        //                                            ^ display links when hovered over,
-        //                                                        ^ redraw the path when mouse exits
-        //                                                                  ^ display data when clicked
-	}
 };

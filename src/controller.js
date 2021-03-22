@@ -1,10 +1,10 @@
 /*
-The App class is used to store data, preventing the need for global variables.
+The Controller class is used to store data, preventing the need for global variables.
 It also serves to link all of the GUI elements together
 It also takes a lot of code out of the main HTML file.
 */
 
-import { Path, testStack, testMinHeap } from         "./nodes/path.js";
+import { Path, testStack, testMinHeap } from "./nodes/path.js";
 import { QrCodeParams } from "./htmlInterface/qrCodes.js";
 import { Graph } from       "./dataFormatting/graph.js";
 import {
@@ -14,9 +14,9 @@ import {
     testLev
 } from "./htmlInterface/elementInterfaces.js";
 
-export class App{
+export class Controller{
     constructor(){
-        //html elements
+        // html elements
         this.canvas = null;
         this.start = null;
         this.end = null;
@@ -24,6 +24,7 @@ export class App{
 		this.urlList = null;
         this.pathUrlElementId = null;
 
+        // model elements
         this.currentPath = null;
         this.graph = new Graph();
 
@@ -44,10 +45,6 @@ export class App{
         let svgElement = SVG(elementId).panZoom({zoomMin: 0.5, zoomMax: 5});
 		this.canvas = new Canvas(svgElement);
 	}
-	getCanvas(){
-		return this.canvas;
-	}
-
 
     /*
      * Creates a TextBox from the given elements.
@@ -67,7 +64,6 @@ export class App{
 		this.end = new TextBox(inputBoxId, resultDisplayId);
 	}
 
-
 	/*
     Id is the id of any HTML element.
     When the given element is clicked,
@@ -83,7 +79,6 @@ export class App{
 			this.updatePath();
 		};
 	}
-
 
 	/*
      * Creates a UrlList,
@@ -145,6 +140,15 @@ export class App{
         };
     }
 
+
+
+
+
+
+
+
+
+
     /*
     Adds functionality to the input element with the given ID.
     When the user chooses a folder using this input element,
@@ -181,6 +185,19 @@ export class App{
             console.log("done");
         };
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     /*
@@ -243,15 +260,7 @@ export class App{
         let start = this.getGraph().getIdByString(this.start.getResult());
         let end = this.getGraph().getIdByString(this.end.getResult());
         let newPath = new Path(start, end, this);
-        if(newPath.valid){
-            this.setPath(newPath);
-        } else {
-            throw new Error("Invalid path: ", newPath);
-        }
-	}
-
-	getPath(){
-		return this.currentPath;
+        this.setPath(newPath);
 	}
 
 	getGraph(){
@@ -352,6 +361,12 @@ export class App{
         this.graph.drawAll(this.canvas);
     }
 
+
+
+    /*
+    Testing methods
+    */
+    
     addDevTools(){
 		/*
 		Adds divs to to webpage which will allow

@@ -270,10 +270,7 @@ export class Graph{
 			console.log(name + padding + id);
 		});
 	}
-	generateDivs(main) {
-		//used to detect connection errors
-		this.getAll().forEach(node => node.generateDiv(main));
-	}
+	
 	drawLinks(node, canvas){
 		let toNode;
 		// draws lines connecting this node to its adjacent nodes

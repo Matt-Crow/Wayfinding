@@ -5,8 +5,8 @@ after which it inserts the index.js module into the head of the document,
 and initializes the program.
 
 initializing the program:
-	Creates a App object, which is used to store otherwise global variables,
-    the App links the various HTML components to itself,
+	Creates a Controller object, which is used to store otherwise global variables,
+    the Controller links the various HTML components to itself,
     so as to connect the data and GUI together.
 
 	Next, the program downloads the data used by the program, then:
@@ -18,7 +18,7 @@ initializing the program:
 		With that in mind, each Node's coordinates are a set percentage of the way between Nodes -1 and -2's coordinates, and thus are the same percentage of the way between them on the SVG image.
 
 		Next, the Graph constructs a string to node ID table of buildings, rooms, and other labels.
-		the App object populates the two input boxes with all the strings from this table, meaning that when the user starts typing, the string that most closely matches what they are typing will appear below the input box.
+		the Controller object populates the two input boxes with all the strings from this table, meaning that when the user starts typing, the string that most closely matches what they are typing will appear below the input box.
 		the program then reads the parameters passed to the URL, and if any of the parameters are "startID=" or "endID=", it will set the default path's start and end points based on the node IDs passed in.
 		draw the current path.
 
@@ -43,4 +43,4 @@ What each file does:
 	/webpages
 		-index.js: contains all the code to run once google api is loaded
 
-	app.js provides the App class, which is used to store otherwise global variables. One is created by index.js, then stuff gets passed into it. We can then pass the App object to whatever function we want so it can access the "global" variables.
+	controller.js provides the Controller class, which is used to store otherwise global variables. One is created by index.js, then stuff gets passed into it. We can then pass the Controller object to whatever function we want so it can access the "global" variables.

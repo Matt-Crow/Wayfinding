@@ -226,7 +226,7 @@ async function getLatestManifest(){
 
 /*
 Imports all the data needed by the program into master
-@param master : the App object used by the program.
+@param master : the Controller object used by the program.
 */
 async function importDataInto(master){
     console.time("begin importing data");

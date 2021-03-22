@@ -1,10 +1,10 @@
-import {App} from "./app.js";
+import {Controller} from "./controller.js";
 import {importDataInto} from "./getRequests/importData.js";
 
 function init(){
 	console.time("Time to load (wayfinding)");
 
-	let application = new App();
+	let application = new Controller();
     application.createCanvas("wrapper");
 	application.createStartInputBox("start box", "start hint");
     application.createEndInputBox("end box", "end hint");

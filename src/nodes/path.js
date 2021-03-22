@@ -15,7 +15,7 @@ class Path{
     constructor(startId, endId, dataSource) {
         /*
         start and endId are node IDs
-        dataSource is an App object
+        dataSource is an Controller object
 
         nodePath is an array of nodes which serve as the vertexis of this path.
         pathLength is the total length of the distance between all the nodes used in the path
