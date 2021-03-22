@@ -270,7 +270,7 @@ export class Controller{
     //working here #######################################
 
     //move some of the stuff from importDataInto(master) to this
-	async notifyImportDone(responses){
+	async notifyImportDone(dataSet){
 		/*
 		Called after the initial import.
 		Updates this' various components with the newly imported data.
@@ -283,11 +283,11 @@ export class Controller{
         this.mode = params.wayfindingMode;
 
         console.time("set image");
-		await this.canvas.setImage(responses.get("map image"));
+		await this.canvas.setImage(dataSet.imageUrl);
         console.timeEnd("set image");
-        this.graph.parseNodeData(responses.get("Node coordinates"));
-        this.graph.parseConnData(responses.get("Node connections"));
-        this.graph.parseNameToId(responses.get("labels"));
+        this.graph.parseNodeData(dataSet.nodeCoordFile);
+        this.graph.parseConnData(dataSet.nodeConnFile);
+        this.graph.parseNameToId(dataSet.labelFile);
 		await this.refresh();
 	}
 
@@ -366,7 +366,7 @@ export class Controller{
     /*
     Testing methods
     */
-    
+
     addDevTools(){
 		/*
 		Adds divs to to webpage which will allow

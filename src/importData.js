@@ -273,5 +273,6 @@ class DataSet{
 export {
     LOGGER,
     importDataInto,
-	getLatestDataSet
+	getLatestDataSet,
+	DataSet
 };

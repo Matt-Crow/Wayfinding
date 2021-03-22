@@ -1,5 +1,6 @@
 import {Controller} from "./controller.js";
-import {importDataInto} from "./importData.js";
+import {QrCodeParams} from "./htmlInterface/qrCodes.js";
+import {importDataInto, getLatestDataSet} from "./importData.js";
 
 function init(){
 	console.time("Time to load (wayfinding)");
@@ -15,9 +16,11 @@ function init(){
     application.setDownloadButton("downloadSvg");
 	application.addImportButton("dataSetUpload");
 
-	importDataInto(application).then((responses)=>{
+	getLatestDataSet(new QrCodeParams().wayfindingMode).then((dataSet)=>{
+		application.notifyImportDone(dataSet);
 		console.timeEnd("Time to load (wayfinding)");
 	}).catch((err)=>{
+		console.timeEnd("Time to load (wayfinding)");
 		console.error("Failed to import data:");
 		console.error(err);
 	});
