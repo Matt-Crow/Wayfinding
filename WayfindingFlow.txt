@@ -1,3 +1,4 @@
+
 The program begins in index.html
 
 downloads the google api,
@@ -30,8 +31,6 @@ What each file does:
 	/dataFormatting
 		-csv.js: provides functions for "reverting" the csv files downloaded by the program from just a string of comma seperated values back into a two-dimensional 	array.
 		-graph.js: acts as a fake database to store the data used by the program.
-	/getRequests
-		-importData.js imports data from the google drive into the program.
 	/htmlInterface
 		-htmlInterfaces.js:
             Contains the various classes used to connect the program data with the HTML elements on the webpage.
@@ -40,7 +39,6 @@ What each file does:
     /nodes
 		-arcNode.js: contains the Node class.
 		-path.js: provides the Path class, used to find paths between nodes.
-	/webpages
-		-index.js: contains all the code to run once google api is loaded
-
+	index.js: contains all the code to run once google api is loaded	
+	importData.js downloads the latest data from the google drive
 	controller.js provides the Controller class, which is used to store otherwise global variables. One is created by index.js, then stuff gets passed into it. We can then pass the Controller object to whatever function we want so it can access the "global" variables.

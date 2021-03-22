@@ -1,5 +1,5 @@
 import {Controller} from "./controller.js";
-import {importDataInto} from "./getRequests/importData.js";
+import {importDataInto} from "./importData.js";
 
 function init(){
 	console.time("Time to load (wayfinding)");

@@ -1,19 +1,19 @@
 /*
-Provides functions which are used to download the data the program 
+Provides functions which are used to download the data the program
 needs to find paths.
 
 We currently store the data on the google drive as csv and png files,
 but we will soon (hopefully) store everything on a database soon.
 
-We have a file, "versions.csv" on the google drive. The Node Manager 
+We have a file, "versions.csv" on the google drive. The Node Manager
 appends each of its exports to this file.
 
 If you really want to know how this works, scroll to the bottom, and work your way up;
 each of the functions has their own documentation
 */
 
-import {formatResponse, CsvFile} from "../dataFormatting/csv.js";
-import {QrCodeParams}            from "../htmlInterface/qrCodes.js";
+import {formatResponse, CsvFile} from "./dataFormatting/csv.js";
+import {QrCodeParams}            from "./htmlInterface/qrCodes.js";
 
 
 const NEWLINE = /\r?\n|\r/;
@@ -85,7 +85,7 @@ async function driveGet(fileId){
 
 /*
  * Downloads the manifest with the given ID.
- * 
+ *
  * A manifest lists all the different files used by a version of Wayfinding.
  * this function downloads each file referenced in that manifest, returning a Map:
  * (*) each key in the Map is the purpose of the file, and can have the following values:
@@ -93,7 +93,7 @@ async function driveGet(fileId){
  *      - "Node connections"
  *      - "labels"
  *      - "map image"
- * (*) the value will be the text of the file referenced in the manifest, 
+ * (*) the value will be the text of the file referenced in the manifest,
  *      for example, map.get("Node coordinates") returns the node coordinate file associated with the manifest
  *      the only exception is the map image, which is stored in the Map as a link to the image
  */
@@ -101,11 +101,12 @@ async function importManifest(manifestFileId){
     let manifestText = await driveGet(manifestFileId);
     let data = formatResponse(manifestText);
     let keyToFileText = new Map();
+	let dataSet = new DataSet(); // use this instead of keyToFileText
     let promises = [];
-    
+
     let key;
     let fileId;
-    
+
     //need this to preserve values of fileId and key despite iteration
     async function getFile(fileId, key){
         let file = await driveGet(fileId);
@@ -113,7 +114,7 @@ async function importManifest(manifestFileId){
         return file;
     }
     //          avoid the header
-    for(let i = 1; i < data.length; i++){ 
+    for(let i = 1; i < data.length; i++){
         if (data[i].length >= 2 && data[i][1] !== ""){
             /*
             The data is a table, with the first column being a key,
@@ -121,21 +122,26 @@ async function importManifest(manifestFileId){
 
             and the second being the url linking to that resource
             */
-            
+
             key = data[i][0];
             //make sure to get just the file id
             fileId = (data[i][1].indexOf("id=") === -1) ? data[i][1] : data[i][1].split("id=")[1];
-            
+
             keyToFileText.set(key, "No response from file ID " + fileId);
             promises.push(getFile(fileId, key));
         }
     }
-    
+
     await Promise.all(promises).then((r)=>{
         LOGGER.add(r);
     });
-    
-    return keyToFileText;
+
+	dataSet.nodeCoordFile = keyToFileText.get("Node coordinates");
+	dataSet.nodeConnFile = keyToFileText.get("Node connections");
+	dataSet.labelFile = keyToFileText.get("labels");
+	dataSet.imageUrl = keyToFileText.get("map image");
+
+    return dataSet;
 }
 
 
@@ -151,10 +157,10 @@ What it does:
 5. If no valid manifests exist for the current version, check for the most recent wayfinding manifest.
 6. If no valid manifests exist for wayfinding, something went VERY wrong, and throws an Error.
 */
-async function getLatestManifest(){
+async function getLatestManifest(wayfindingMode){
 	//get the file id, not the URL
 	let versionLogId = (VERSION_LOG_URL.indexOf("id=") === -1) ? VERSION_LOG_URL : VERSION_LOG_URL.split("id=")[1];
-	
+
     //get the contents of the version log
     let response = await driveGet(versionLogId);
     let rows = response.split(NEWLINE).map((row)=>row.split(","));
@@ -163,7 +169,6 @@ async function getLatestManifest(){
 
     //check the wayfinding mode
     //mode is an int, the index of the column it is contained in the version log
-    let wayfindingMode = new QrCodeParams().wayfindingMode;
     let mode = rows[0].indexOf(wayfindingMode);
     if(mode === -1){
         /*
@@ -175,10 +180,10 @@ async function getLatestManifest(){
 
     let url;
     let id;
-    
+
     console.log("Finding the latest manifest...");
     //rows.forEach((row)=>console.log(row.join(", ")));
-    
+
     /*
     Since the most recent manifest for each version
     is appended to the bottom of its column, the CSV
@@ -210,7 +215,7 @@ async function getLatestManifest(){
         If we make it to the header, that means
         there are no valid exports for the given mode.
         If we aren't checking for Wayfinding exports,
-        switch to checking that column, and start back 
+        switch to checking that column, and start back
         at the bottom.
         */
         if(currRow === 0 && currCol !== 0){
@@ -224,30 +229,38 @@ async function getLatestManifest(){
     return ret;
 }
 
+
+
 /*
 Imports all the data needed by the program into master
 @param master : the Controller object used by the program.
 */
 async function importDataInto(master){
     console.time("begin importing data");
-    
+
     console.time("get latest manifest");
-    let id = await getLatestManifest();
+    let id = await getLatestManifest(new QrCodeParams().wayfindingMode);
     console.timeEnd("get latest manifest");
     console.log("id is " + id);
-    
+
     console.time("import manifest");
-    let responses = await importManifest(id);
+    let dataSet = await importManifest(id);
     console.timeEnd("import manifest");
-    
-    await master.notifyImportDone(responses);
+
+    await master.notifyImportDone(dataSet);
     console.timeEnd("begin importing data");
-    
-    return responses;
+
+    return dataSet;
 }
 
-//maybe use this to replace all of the ugly importing?
-/*
+// new function
+async function getLatestDataSet(version){
+	let latestManifestId = await getLatestManifest(version);
+	let latestDataSet = await importManifest(latestManifestId);
+
+	return latestDataSet;
+}
+
 class DataSet{
     constructor(){
         this.nodeCoordFile = null;
@@ -256,10 +269,9 @@ class DataSet{
         this.imageUrl = null;
     }
 }
-*/
+
 export {
-    NEWLINE,
-    VERSION_LOG_URL,
     LOGGER,
-    importDataInto
+    importDataInto,
+	getLatestDataSet
 };
