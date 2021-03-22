@@ -17,7 +17,7 @@ function init(){
 	application.addImportButton("dataSetUpload");
 
 	getLatestDataSet(new QrCodeParams().wayfindingMode).then((dataSet)=>{
-		application.notifyImportDone(dataSet);
+		application.importDataSet(dataSet);
 		console.timeEnd("Time to load (wayfinding)");
 	}).catch((err)=>{
 		console.timeEnd("Time to load (wayfinding)");

@@ -247,7 +247,7 @@ async function importDataInto(master){
     let dataSet = await importManifest(id);
     console.timeEnd("import manifest");
 
-    await master.notifyImportDone(dataSet);
+    await master.importDataSet(dataSet);
     console.timeEnd("begin importing data");
 
     return dataSet;

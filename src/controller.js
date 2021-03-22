@@ -7,6 +7,7 @@ It also takes a lot of code out of the main HTML file.
 import { Path, testStack, testMinHeap } from "./nodes/path.js";
 import { QrCodeParams } from "./htmlInterface/qrCodes.js";
 import { Graph } from       "./dataFormatting/graph.js";
+import { DataSet } from "./importData.js";
 import {
     Canvas,
     TextBox,
@@ -49,7 +50,7 @@ export class Controller{
     /*
      * Creates a TextBox from the given elements.
      * The app uses these elements to read and display input.
-     * Populates said TextBoxes with the labels from the imported graph when notifyImportDone is called.
+     * Populates said TextBoxes with the labels from the imported graph when importDataSet is called.
      */
 	createStartInputBox(inputBoxId, resultDisplayId){
 		this.start = new TextBox(inputBoxId, resultDisplayId);
@@ -58,7 +59,7 @@ export class Controller{
     /*
      * Creates a TextBox from the given elements.
      * The app uses these elements to read and display input.
-     * Populates said TextBoxes with the labels from the imported graph when notifyImportDone is called.
+     * Populates said TextBoxes with the labels from the imported graph when importDataSet is called.
      */
 	createEndInputBox(inputBoxId, resultDisplayId){
 		this.end = new TextBox(inputBoxId, resultDisplayId);
@@ -140,15 +141,6 @@ export class Controller{
         };
     }
 
-
-
-
-
-
-
-
-
-
     /*
     Adds functionality to the input element with the given ID.
     When the user chooses a folder using this input element,
@@ -160,45 +152,24 @@ export class Controller{
             throw new Error("Couldn't find element with ID " + elementId);
         }
         e.onchange = async ()=>{
+            let dataSet = new DataSet();
             let files = e.files;
             let fileText;
             for(let file of files){
                 console.log(file);
                 if(file.name.endsWith("NodeCoords.csv")){
-                    fileText = await file.text();
-                    this.graph.parseNodeData(fileText);
-                    console.log("done parsing node data");
+                    dataSet.nodeCoordFile = await file.text();
                 } else if(file.name.endsWith("NodeConn.csv")){
-                    fileText = await file.text();
-                    this.graph.parseConnData(fileText);
-                    console.log("done parsing conn data");
+                    dataSet.nodeConnFile = await file.text();
                 } else if(file.name.endsWith("Labels.csv")){
-                    fileText = await file.text();
-                    this.graph.parseNameToId(fileText);
-                    console.log("done parsing label data");
+                    dataSet.labelFile = await file.text();
                 } else if(file.name.endsWith("png")){
-                    await this.canvas.setImage(URL.createObjectURL(file));
+                    dataSet.imageUrl = await URL.createObjectURL(file);
                 }
             }
-            console.log("refreshing...");
-            await this.refresh();
-            console.log("done");
+            this.importDataSet(dataSet);
         };
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     /*
      * Path related methods.
@@ -270,7 +241,7 @@ export class Controller{
     //working here #######################################
 
     //move some of the stuff from importDataInto(master) to this
-	async notifyImportDone(dataSet){
+	async importDataSet(dataSet){
 		/*
 		Called after the initial import.
 		Updates this' various components with the newly imported data.
@@ -282,12 +253,18 @@ export class Controller{
         const params = new QrCodeParams();
         this.mode = params.wayfindingMode;
 
+        console.log(`Map image URL is ${dataSet.imageUrl}`);
         console.time("set image");
-		await this.canvas.setImage(dataSet.imageUrl);
-        console.timeEnd("set image");
-        this.graph.parseNodeData(dataSet.nodeCoordFile);
-        this.graph.parseConnData(dataSet.nodeConnFile);
-        this.graph.parseNameToId(dataSet.labelFile);
+		this.canvas.setImage(dataSet.imageUrl).then((good)=>{
+            console.timeEnd("set image");
+        }).catch((err)=>{
+            console.error("Failed to set map image:");
+            console.error(err);
+            console.timeEnd("set image");
+        });
+
+        this.graph = Graph.fromDataSet(dataSet);
+
 		await this.refresh();
 	}
 
@@ -296,8 +273,6 @@ export class Controller{
 
         const upperLeft = this.graph.getNode(-1);
 		const lowerRight = this.graph.getNode(-2);
-        console.log(upperLeft);
-        console.log(lowerRight);
 
         let startId;
         let endId;
@@ -338,8 +313,6 @@ export class Controller{
 
         //params.displayData();
 
-        console.log(upperLeft);
-        console.log(lowerRight);
 		this.canvas.setCorners(
 			upperLeft.x,
 			upperLeft.y,
@@ -357,7 +330,13 @@ export class Controller{
 			this.addDevTools();
 			console.log("adding dev");
 		}
-
+        /*
+        this.canvas.draw.viewbox({
+            x: 0,
+            y: 0,
+            width: 500,
+            height: 500
+        });*/
         this.graph.drawAll(this.canvas);
     }
 

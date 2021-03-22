@@ -38,8 +38,7 @@ class Canvas{
 	//needs to be async because draw.image makes a requests to get the image
     async setImage(src){
 		return new Promise((resolve, reject)=>{
-            this.image = this.draw.image(src);
-			this.image.loaded(()=>{
+            this.image = this.draw.image(src, ()=>{
                 /*
                  * For some reason svg.js is having an
                  * issue where it doesn't render the

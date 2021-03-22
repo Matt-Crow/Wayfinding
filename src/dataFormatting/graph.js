@@ -270,7 +270,7 @@ export class Graph{
 			console.log(name + padding + id);
 		});
 	}
-	
+
 	drawLinks(node, canvas){
 		let toNode;
 		// draws lines connecting this node to its adjacent nodes
@@ -290,3 +290,11 @@ export class Graph{
 		});
 	}
 };
+
+Graph.fromDataSet = function(dataSet){
+	let graph = new Graph();
+	graph.parseNodeData(dataSet.nodeCoordFile);
+	graph.parseConnData(dataSet.nodeConnFile);
+	graph.parseNameToId(dataSet.labelFile);
+	return graph;
+}
