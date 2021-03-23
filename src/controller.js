@@ -153,9 +153,7 @@ export class Controller{
         }
         e.onchange = async ()=>{
             let dataSet = new DataSet();
-            let files = e.files;
-            let fileText;
-            for(let file of files){
+            for(let file of e.files){
                 console.log(file);
                 if(file.name.endsWith("NodeCoords.csv")){
                     dataSet.nodeCoordFile = await file.text();
@@ -285,7 +283,6 @@ export class Controller{
 			lowerRight.y
 		);
 
-
 		this.setPath(new Path(
 			startId,
 			endId,
@@ -334,8 +331,7 @@ export class Controller{
 		let source = this;
 		let graph = source.getGraph();
 
-		let points = [];
-		points = points.concat(graph.getAllNames());
+		let points = graph.getAllNames();
 
 		function checkPath(startStr, endStr){
 			try{
