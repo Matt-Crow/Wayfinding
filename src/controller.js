@@ -190,7 +190,9 @@ export class Controller{
         // center the view on the new path
         // ###############################
         let bounds = path.calculateBounds();
+        this.canvas.focusOn(bounds.minX, bounds.minY);
         //set the new zoom
+        /*
         let bw = (bounds.maxX - bounds.minX);
         let bh = (bounds.maxY - bounds.minY);
         let zx = (bw === 0) ? 1000 : this.canvas.destWidth / bw;
@@ -211,7 +213,7 @@ export class Controller{
             height: h
         };
         this.canvas.draw.viewbox(newBox);
-        /*
+
         console.log("Setting viewbox to ", newBox);
         console.log("Bounds are ", bounds);
         console.log(`Zoom is the max of ${zx}, ${zy}, 0.5`);
@@ -312,6 +314,7 @@ export class Controller{
 			lowerRight.x,
 			lowerRight.y
 		);
+
 
 		this.setPath(new Path(
 			startId,

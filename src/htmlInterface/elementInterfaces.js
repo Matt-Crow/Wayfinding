@@ -37,11 +37,10 @@ class Canvas{
 
 	//needs to be async because draw.image makes a requests to get the image
     async setImage(src){
+		let canvas = this;
 		return new Promise((resolve, reject)=>{
-			console.log(`Src is ${src}`);
-			this.image = this.draw.image(src);
-			this.image.on("load", (imageEvent)=>{
-				console.log("start setImage promise");
+			canvas.image = canvas.draw.image(src);
+			canvas.image.loaded(()=>{
 	            /*
 	             * For some reason svg.js is having an
 	             * issue where it doesn't render the
@@ -50,18 +49,18 @@ class Canvas{
 	             * viewbox to itself forces it to reload,
 	             * aleviating the issue.
 	             */
-	            //this.draw.viewbox(this.draw.viewbox());
-				this.destWidth = this.image.node.width.baseVal.value;
-				this.destHeight = this.image.node.height.baseVal.value;
-				this.draw.viewbox(0, 0, this.destWidth, this.destHeight);
-				console.log(this);
+	            //canvas.draw.viewbox(canvas.draw.viewbox());
+				canvas.destWidth = canvas.image.node.width.baseVal.value;
+				canvas.destHeight = canvas.image.node.height.baseVal.value;
+				canvas.draw.viewbox(0, 0, canvas.destWidth, canvas.destHeight);
+				console.log(canvas.destWidth);
+				console.log(canvas.draw.viewbox());
 				resolve();
 			});
-			this.image.on("error", (e)=>{
+			canvas.image.on("error", (e)=>{
 				console.error(e);
 				reject(e);
 			});
-			console.log("exit set image");
 		});
     }
 
@@ -75,6 +74,16 @@ class Canvas{
 				a[i].remove();
 			}
 		}
+	}
+
+	focusOn(x, y){
+		this.draw.viewbox(
+			this.x(x),
+			this.y(y),
+			this.destWidth,
+			this.destHeight
+		);
+		console.log(this.draw.viewbox());
 	}
 
     /*
