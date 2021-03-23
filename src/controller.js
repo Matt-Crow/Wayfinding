@@ -193,8 +193,8 @@ export class Controller{
         //set the new zoom
         let bw = (bounds.maxX - bounds.minX);
         let bh = (bounds.maxY - bounds.minY);
-        let zx = (bw === 0) ? 0 : this.canvas.destWidth / bw;
-        let zy = (bh === 0) ? 0 : this.canvas.destHeight / bh;
+        let zx = (bw === 0) ? 1000 : this.canvas.destWidth / bw;
+        let zy = (bh === 0) ? 1000 : this.canvas.destHeight / bh;
         let zoom = Math.min(zx, zy, 0.5);
         this.canvas.draw.zoom(zoom);
 
@@ -253,18 +253,11 @@ export class Controller{
         const params = new QrCodeParams();
         this.mode = params.wayfindingMode;
 
-        console.log(`Map image URL is ${dataSet.imageUrl}`);
         console.time("set image");
-		this.canvas.setImage(dataSet.imageUrl).then((good)=>{
-            console.timeEnd("set image");
-        }).catch((err)=>{
-            console.error("Failed to set map image:");
-            console.error(err);
-            console.timeEnd("set image");
-        });
+		await this.canvas.setImage(dataSet.imageUrl);
+        console.timeEnd("set image");
 
         this.graph = Graph.fromDataSet(dataSet);
-
 		await this.refresh();
 	}
 
@@ -330,14 +323,8 @@ export class Controller{
 			this.addDevTools();
 			console.log("adding dev");
 		}
-        /*
-        this.canvas.draw.viewbox({
-            x: 0,
-            y: 0,
-            width: 500,
-            height: 500
-        });*/
         this.graph.drawAll(this.canvas);
+        console.log("done refreshing");
     }
 
 

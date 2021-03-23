@@ -38,21 +38,31 @@ class Canvas{
 	//needs to be async because draw.image makes a requests to get the image
     async setImage(src){
 		return new Promise((resolve, reject)=>{
-            this.image = this.draw.image(src, ()=>{
-                /*
-                 * For some reason svg.js is having an
-                 * issue where it doesn't render the
-                 * entire image until the user clicks
-                 * and moves the image. Setting the
-                 * viewbox to itself forces it to reload,
-                 * aleviating the issue.
-                 */
-                this.draw.viewbox(this.draw.viewbox());
-				this.resize();
+			console.log(`Src is ${src}`);
+			this.image = this.draw.image(src);
+			this.image.on("load", (imageEvent)=>{
+				console.log("start setImage promise");
+	            /*
+	             * For some reason svg.js is having an
+	             * issue where it doesn't render the
+	             * entire image until the user clicks
+	             * and moves the image. Setting the
+	             * viewbox to itself forces it to reload,
+	             * aleviating the issue.
+	             */
+	            //this.draw.viewbox(this.draw.viewbox());
+				this.destWidth = this.image.node.width.baseVal.value;
+				this.destHeight = this.image.node.height.baseVal.value;
+				this.draw.viewbox(0, 0, this.destWidth, this.destHeight);
+				console.log(this);
 				resolve();
 			});
+			this.image.on("error", (e)=>{
+				console.error(e);
+				reject(e);
+			});
+			console.log("exit set image");
 		});
-
     }
 
     setColor(color){
@@ -103,18 +113,6 @@ class Canvas{
 		this.sourceMaxX = x2;
 		this.sourceMaxY = y2;
 		this.calcSize();
-	}
-
-    /*
-    Recalculates the size of the SVG image,
-    so that way nodes don't appear skewed if the SVG changes size.
-
-    Note that this doesn't change the size of the element,
-    notifies the Canvas of the new size.
-    */
-	resize(){
-		this.destWidth = this.image.node.width.baseVal.value;
-		this.destHeight = this.image.node.height.baseVal.value;
 	}
 
     /*
