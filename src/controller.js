@@ -185,39 +185,9 @@ export class Controller{
             document.getElementById(this.pathUrlElementId).innerText = path.getURL();
         }
 
-        path.draw(this.canvas);
-        // ###############################
-        // center the view on the new path
-        // ###############################
         let bounds = path.calculateBounds();
-        this.canvas.focusOn(bounds.minX, bounds.minY);
-        //set the new zoom
-        /*
-        let bw = (bounds.maxX - bounds.minX);
-        let bh = (bounds.maxY - bounds.minY);
-        let zx = (bw === 0) ? 1000 : this.canvas.destWidth / bw;
-        let zy = (bh === 0) ? 1000 : this.canvas.destHeight / bh;
-        let zoom = Math.min(zx, zy, 0.5);
-        this.canvas.draw.zoom(zoom);
-
-        //AFTER zooming in, get the size of the viewbox
-        let w = this.canvas.draw.viewbox().width;
-        let h = this.canvas.draw.viewbox().height;
-        //the center of the bounds
-        let cx = (bounds.minX + bounds.maxX) / 2;
-        let cy = (bounds.minY + bounds.maxY) / 2;
-        let newBox = {
-            x: this.canvas.x(cx) - w / 2,
-            y: this.canvas.y(cy) - h / 2,
-            width: w,
-            height: h
-        };
-        this.canvas.draw.viewbox(newBox);
-
-        console.log("Setting viewbox to ", newBox);
-        console.log("Bounds are ", bounds);
-        console.log(`Zoom is the max of ${zx}, ${zy}, 0.5`);
-        */
+        this.canvas.focusOn(bounds.maxX, bounds.maxY, bounds.minX, bounds.minY);
+        path.draw(this.canvas);
     }
 
     /*

@@ -53,8 +53,8 @@ class Canvas{
 				canvas.destWidth = canvas.image.node.width.baseVal.value;
 				canvas.destHeight = canvas.image.node.height.baseVal.value;
 				canvas.draw.viewbox(0, 0, canvas.destWidth, canvas.destHeight);
-				console.log(canvas.destWidth);
-				console.log(canvas.draw.viewbox());
+				//console.log(canvas.destWidth);
+				//console.log(canvas.draw.viewbox());
 				resolve();
 			});
 			canvas.image.on("error", (e)=>{
@@ -76,14 +76,33 @@ class Canvas{
 		}
 	}
 
-	focusOn(x, y){
+	/**
+	Zooms and pans the map image to show the box bounded
+	by the given x and y coordinates
+	*/
+	focusOn(maxX, maxY, minX, minY){
+		let width = maxX - minX;
+		let height = maxY - minY;
+
+		let zoomPercX = (width === 0) ? 0.5 : this.destWidth / width;
+		let zoomPercY = (height === 0) ? 0.5 : this.destHeight / height;
+		let zoom = Math.min(zoomPercX, zoomPercY, 0.5);
+		this.draw.zoom(zoom);
+
+		// AFTER zooming in, get the size of the viewbox
+		width = this.draw.viewbox().width;
+		height = this.draw.viewbox().height;
+		// center the bounds
+		let centerX = this.x((maxX + minX) / 2) - width / 2;
+		let centerY = this.y((maxY + minY) / 2) - height / 2;
+
 		this.draw.viewbox(
-			this.x(x),
-			this.y(y),
-			this.destWidth,
-			this.destHeight
+			centerX,
+			centerY,
+			width,
+			height
 		);
-		console.log(this.draw.viewbox());
+		//console.log(JSON.stringify(this.draw.viewbox()));
 	}
 
     /*
