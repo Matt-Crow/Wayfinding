@@ -11,23 +11,23 @@ export class QrCodeParams{
         "endID"   : int
         "mode"    : string
 
-        start and end ids are the ids of the nodes for the 
+        start and end ids are the ids of the nodes for the
         start and end points of the default path
+        !!! Note that these default to null if no start and ends are passed !!!
 
-        mode is what application of wayfinding this is 
+        mode is what application of wayfinding this is
         ("WAYFINDING", "ARTFINDING", etc)
         */
 
         const query = window.location.href;
-        // defaults to administration to design hub
-        this.start = 14;
-        this.end = 96;
+        this.start = null;
+        this.end = null;
         this.startMode = QrCodeParams.ID_MODE;
         this.endMode = QrCodeParams.ID_MODE;
         this.wayfindingMode = "WAYFINDING"; //cannot be enum, as mode is an arbitrary name on the column of the version log
         this.devMode = false;
-        
-        
+
+
         // check if parameters were passed
         if (query.indexOf("?") > -1) {
             let args = query.split("?")[1];
@@ -72,7 +72,7 @@ export class QrCodeParams{
             });
         }
     }
-    
+
     displayData(){
         console.log("QR code parameters:");
         console.log(`* Start is ${this.start} (${(this.startMode === 0) ? "ID" : "name"})`);

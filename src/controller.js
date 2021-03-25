@@ -236,68 +236,69 @@ export class Controller{
 
         const upperLeft = this.graph.getNode(-1);
 		const lowerRight = this.graph.getNode(-2);
-
-        let startId;
-        let endId;
-
-        this.start.setOptions(this.getGraph().getAllNames());
-		this.end.setOptions(this.getGraph().getAllNames());
-
-        if(params.startMode === QrCodeParams.ID_MODE){
-            try {
-                let names = this.graph.getLabelsForId(params.start);
-                if(names.length > 0){
-                    this.start.setInput(names[0]);
-                }
-            } catch(e){
-                console.error(e);
-            }
-            startId = params.start;
-
-        } else {
-            startId = this.graph.getIdByString(params.start);
-            this.start.setInput(params.start);
-        }
-
-        if(params.endMode === QrCodeParams.ID_MODE){
-            try {
-                let names = this.graph.getLabelsForId(params.end);
-                if(names.length > 0){
-                    this.end.setInput(names[0]);
-                }
-            } catch(e){
-                console.error(e);
-            }
-            endId = params.end;
-        } else {
-            endId = this.graph.getIdByString(params.end);
-            this.end.setInput(params.end);
-        }
-
-        //params.displayData();
-
-		this.canvas.setCorners(
+        this.canvas.setCorners(
 			upperLeft.x,
 			upperLeft.y,
 			lowerRight.x,
 			lowerRight.y
 		);
 
-        try {
-    		this.setPath(new Path(
-    			startId,
-    			endId,
-    			this
-    		));
-        } catch(ex){
-            console.error(ex);
+        this.start.setOptions(this.getGraph().getAllNames());
+		this.end.setOptions(this.getGraph().getAllNames());
+
+        if(params.start != null && params.end != null){
+            let startId;
+            let endId;
+            if(params.startMode === QrCodeParams.ID_MODE){
+                try {
+                    let names = this.graph.getLabelsForId(params.start);
+                    if(names.length > 0){
+                        this.start.setInput(names[0]);
+                    }
+                } catch(e){
+                    console.error(e);
+                }
+                startId = params.start;
+
+            } else {
+                startId = this.graph.getIdByString(params.start);
+                this.start.setInput(params.start);
+            }
+
+            if(params.endMode === QrCodeParams.ID_MODE){
+                try {
+                    let names = this.graph.getLabelsForId(params.end);
+                    if(names.length > 0){
+                        this.end.setInput(names[0]);
+                    }
+                } catch(e){
+                    console.error(e);
+                }
+                endId = params.end;
+            } else {
+                endId = this.graph.getIdByString(params.end);
+                this.end.setInput(params.end);
+            }
+
+            try {
+        		this.setPath(new Path(
+        			startId,
+        			endId,
+        			this
+        		));
+            } catch(ex){
+                console.error(ex);
+            }
+        } else {
+            this.graph.drawAll(this.canvas);
         }
+
+        //params.displayData();
 
 		if(params.devMode){
 			this.addDevTools();
 			console.log("adding dev");
 		}
-        this.graph.drawAll(this.canvas);
         console.log("done refreshing");
     }
 
