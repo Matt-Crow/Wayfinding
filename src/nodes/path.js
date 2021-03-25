@@ -43,7 +43,7 @@ class Path{
 		Thanks Kevin
 		sets this.pathPath to shortest path when complete
 		*/
-        let debug = false;
+        let debug = !false;
 
         if((this.startId < 0) || (this.endId < 0)){
 			this.invalidate();

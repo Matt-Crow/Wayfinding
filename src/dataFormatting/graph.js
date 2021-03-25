@@ -27,7 +27,7 @@ export class Graph{
 		This prevents issues when connections are imported before coordinates
 		number => number[]
 		*/
-		this.idToAdjId = new Map();
+		this.idToAdjIds = new Map();
 
 		/*
 		keys are a string, the name of the point (building/room/class name).
@@ -139,10 +139,10 @@ export class Graph{
 			row = data[i];
 			from = parseInt(row[0]);
 			to = parseInt(row[1]);
-			if(!this.idToAdjId.has(from)){
-				this.idToAdjId.set(from, []);
+			if(!this.idToAdjIds.has(from)){
+				this.idToAdjIds.set(from, []);
 			}
-			this.idToAdjId.get(from).push(to);
+			this.idToAdjIds.get(from).push(to);
 		}
 	}
 
@@ -208,7 +208,7 @@ export class Graph{
 	}
 
 	getIdsAdjTo(id){
-		return (this.idToAdjId.has(id)) ? this.idToAdjId.get(id) : [];
+		return (this.idToAdjIds.has(id)) ? this.idToAdjIds.get(id) : [];
 	}
 
 	getIdByString(string){

@@ -283,11 +283,15 @@ export class Controller{
 			lowerRight.y
 		);
 
-		this.setPath(new Path(
-			startId,
-			endId,
-			this
-		));
+        try {
+    		this.setPath(new Path(
+    			startId,
+    			endId,
+    			this
+    		));
+        } catch(ex){
+            console.error(ex);
+        }
 
 		if(params.devMode){
 			this.addDevTools();
