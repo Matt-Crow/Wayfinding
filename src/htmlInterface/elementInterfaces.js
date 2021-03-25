@@ -236,7 +236,7 @@ class UrlList{
  * if shows the option from its option list which most closely matches the user's input.
  *
  * after creating a TextBox, you will need to populate its option by calling...
- * textBox.addOptions(anArray);
+ * textBox.setOptions(anArray);
  * calling the getResult method will return the option which is closest to the user input.
  */
 class TextBox{
@@ -259,21 +259,29 @@ class TextBox{
         if(this.resultElement === null){
             throw new Error("(parameter 2) Cannot find HTML element with ID " + resultDisplayId);
         }
-        this.options = ["Your result will appear here!"];
+        this.resetOptions();
         this.resultElement.innerHTML = this.options[0];
         this.box.oninput = this.updateResult.bind(this);
         this.closest = null;
     }
 
+	/*
+	clears the list of options
+	*/
+	resetOptions(){
+		this.options = ["Your result will appear here!"];
+	}
+
     /*
      * @param options: an array of strings, or just a single string. The options to add.
      */
-    addOptions(options){
+    setOptions(options){
 		let b = this;
 
 		if(!Array.isArray(options)){
 			options = [options];
 		}
+		this.resetOptions(); // keep just the "Your result will appear here!"
 		options.forEach(option =>{
 			if(option){
 				//make sure option isn't null or undefined

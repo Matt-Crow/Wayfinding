@@ -240,8 +240,8 @@ export class Controller{
         let startId;
         let endId;
 
-        this.start.addOptions(this.getGraph().getAllNames());
-		this.end.addOptions(this.getGraph().getAllNames());
+        this.start.setOptions(this.getGraph().getAllNames());
+		this.end.setOptions(this.getGraph().getAllNames());
 
         if(params.startMode === QrCodeParams.ID_MODE){
             try {
